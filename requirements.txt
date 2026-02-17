@@ -51,7 +51,6 @@ python-json-logger==2.0.7
 pytest==7.4.4
 pytest-asyncio==0.23.3
 pytest-cov==4.1.0
-httpx==0.26.0  # For testing FastAPI
 
 # Code Quality
 black==24.1.1
@@ -63,5 +62,5 @@ python-slugify==8.0.1
 arrow==1.3.0
 tenacity==8.2.3
 
-# Production Server
-gunicorn==21.2.0
+# Production Server (Unix only, skip on Windows)
+gunicorn==21.2.0; sys_platform != "win32"

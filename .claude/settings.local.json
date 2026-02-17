@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(source:*)",
+      "Bash(pip install:*)",
+      "Bash(\"c:/Users/to_dh/AppData/Roaming/Claude/local-agent-mode-sessions/47189cd4-849b-46b7-afac-637b25313d89/f8b47980-7ded-4152-a0fe-f2e8790027e4/local_2184feee-7127-43b9-a8a6-a595ea6802ef/outputs/smartshop-ai/venv/Scripts/python.exe\" -m pip install fastapi uvicorn pydantic pydantic-settings python-dotenv)",
+      "Bash(API_PORT=8081 python:*)",
+      "mcp__claude_ai_Atlassian__search",
+      "Bash(venv/Scripts/pip.exe install:*)",
+      "Bash(\"c:/Users/to_dh/AppData/Roaming/Claude/Working/smartshop-ai/venv/Scripts/pip3.exe\" install sqlalchemy alembic pydantic-settings)",
+      "Bash(venv/Scripts/pip install:*)",
+      "Bash(ls:*)",
+      "Bash(c:/Users/to_dh/AppData/Roaming/Claude/Working/smartshop-ai/venv/Scripts/pip3.exe install pandas)"
+    ]
+  }
+}

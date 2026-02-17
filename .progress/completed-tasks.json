@@ -1,0 +1,19 @@
+[
+  {
+    "story_id": "SCRUM-6",
+    "plan_file": "plans/phase-1/SCRUM-6-database-schema.md",
+    "completed_at": "2026-02-16T01:00:00Z",
+    "tasks_completed": 8,
+    "tests_passed": 39
+  },
+  {
+    "story_id": "SCRUM-7",
+    "plan_file": "plans/phase-1/SCRUM-7-data-ingestion.md",
+    "completed_at": "2026-02-17T05:40:00Z",
+    "tasks_completed": 8,
+    "tests_passed": 53,
+    "coverage": "~99%",
+    "files_created": 11,
+    "acceptance_criteria_met": 7
+  }
+]

@@ -7,7 +7,7 @@ python-multipart==0.0.6
 
 # AI & Machine Learning
 openai==1.10.0
-pydantic-ai==0.0.13
+pydantic-ai>=1.0.0,<2.0.0
 tiktoken==0.5.2
 
 # Database & ORM

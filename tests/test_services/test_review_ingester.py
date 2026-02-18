@@ -14,6 +14,7 @@ def products_in_db(db_session):
     """Insert products so reviews have valid foreign keys."""
     for i in range(1, 6):
         product = Product(
+            id=f"SP{i:04d}",
             name=f"Product {i}",
             price=Decimal("10.00"),
             category="General",
@@ -29,9 +30,9 @@ class TestReviewIngester:
     def test_ingest_valid_csv(self, db_session, tmp_path, products_in_db):
         csv_file = tmp_path / "reviews.csv"
         csv_file.write_text(
-            "product_id,rating,review_text,sentiment\n"
-            "1,5,Great product!,positive\n"
-            "2,3,It is okay.,neutral\n"
+            "product_id,rating,text,sentiment\n"
+            "SP0001,5,Great product!,positive\n"
+            "SP0002,3,It is okay.,neutral\n"
         )
 
         ingester = ReviewIngester(db_session=db_session)
@@ -46,10 +47,10 @@ class TestReviewIngester:
     def test_sentiment_inferred_from_rating(self, db_session, tmp_path, products_in_db):
         csv_file = tmp_path / "reviews.csv"
         csv_file.write_text(
-            "product_id,rating,review_text\n"
-            "1,5,Love it\n"
-            "2,1,Hate it\n"
-            "3,3,Meh\n"
+            "product_id,rating,text\n"
+            "SP0001,5,Love it\n"
+            "SP0002,1,Hate it\n"
+            "SP0003,3,Meh\n"
         )
 
         ingester = ReviewIngester(db_session=db_session)
@@ -64,8 +65,8 @@ class TestReviewIngester:
     def test_invalid_product_id_rejected(self, db_session, tmp_path, products_in_db):
         csv_file = tmp_path / "reviews.csv"
         csv_file.write_text(
-            "product_id,rating,review_text\n"
-            "999,5,No such product\n"
+            "product_id,rating,text\n"
+            "INVALID999,5,No such product\n"
         )
 
         ingester = ReviewIngester(db_session=db_session)
@@ -77,10 +78,10 @@ class TestReviewIngester:
     def test_deduplication_by_product_and_text(self, db_session, tmp_path, products_in_db):
         csv_file = tmp_path / "reviews.csv"
         csv_file.write_text(
-            "product_id,rating,review_text\n"
-            "1,5,Great product!\n"
-            "1,4,Great product!\n"
-            "1,5,Different review\n"
+            "product_id,rating,text\n"
+            "SP0001,5,Great product!\n"
+            "SP0001,4,Great product!\n"
+            "SP0001,5,Different review\n"
         )
 
         ingester = ReviewIngester(db_session=db_session)
@@ -93,7 +94,7 @@ class TestReviewIngester:
         csv_file = tmp_path / "reviews.csv"
         csv_file.write_text(
             "product_id,rating\n"
-            "1,4\n"
+            "SP0001,4\n"
         )
 
         ingester = ReviewIngester(db_session=db_session)
@@ -101,13 +102,13 @@ class TestReviewIngester:
 
         assert result.successful == 1
         review = db_session.query(Review).first()
-        assert review.review_text is None
+        assert review.text is None
 
     def test_column_mapping(self, db_session, tmp_path, products_in_db):
         csv_file = tmp_path / "reviews.csv"
         csv_file.write_text(
             "product_id,star_rating,review_body\n"
-            "1,5,Amazing!\n"
+            "SP0001,5,Amazing!\n"
         )
 
         ingester = ReviewIngester(db_session=db_session)
@@ -116,4 +117,4 @@ class TestReviewIngester:
         assert result.successful == 1
         review = db_session.query(Review).first()
         assert review.rating == 5
-        assert review.review_text == "Amazing!"
+        assert review.text == "Amazing!"

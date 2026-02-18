@@ -13,9 +13,9 @@ class TestProductIngester:
     def test_ingest_valid_csv(self, db_session, tmp_path):
         csv_file = tmp_path / "products.csv"
         csv_file.write_text(
-            "name,description,price,brand,category,image_url\n"
-            "Headphones,Great sound,79.99,SoundMax,Electronics,https://example.com/img.jpg\n"
-            "Watch,Smart watch,149.99,FitTech,Electronics,https://example.com/watch.jpg\n"
+            "id,name,description,price,brand,category,stock,rating\n"
+            "SP0001,Headphones,Great sound,79.99,SoundMax,Electronics,45,4.5\n"
+            "SP0002,Watch,Smart watch,149.99,FitTech,Electronics,30,4.2\n"
         )
 
         ingester = ProductIngester(db_session=db_session)
@@ -33,8 +33,8 @@ class TestProductIngester:
     def test_column_name_mapping(self, db_session, tmp_path):
         csv_file = tmp_path / "products.csv"
         csv_file.write_text(
-            "product_name,product_description,selling_price,brand_name,main_category,img_link\n"
-            "Laptop,Fast laptop,999.99,TechCo,Computers,https://example.com/laptop.jpg\n"
+            "id,product_name,product_description,selling_price,brand_name,main_category\n"
+            "LP0001,Laptop,Fast laptop,999.99,TechCo,Computers\n"
         )
 
         ingester = ProductIngester(db_session=db_session)
@@ -47,8 +47,8 @@ class TestProductIngester:
     def test_price_cleaning_currency_symbol(self, db_session, tmp_path):
         csv_file = tmp_path / "products.csv"
         csv_file.write_text(
-            "name,price,category\n"
-            "Item,$299.99,Electronics\n"
+            "id,name,price,category\n"
+            "SP0010,Item,$299.99,Electronics\n"
         )
 
         ingester = ProductIngester(db_session=db_session)
@@ -58,26 +58,26 @@ class TestProductIngester:
         product = db_session.query(Product).first()
         assert float(product.price) == 299.99
 
-    def test_deduplication_same_name_brand(self, db_session, tmp_path):
+    def test_deduplication_by_id(self, db_session, tmp_path):
         csv_file = tmp_path / "products.csv"
         csv_file.write_text(
-            "name,price,brand,category\n"
-            "Widget,10.0,BrandA,General\n"
-            "Widget,15.0,BrandA,General\n"
-            "Widget,10.0,BrandB,General\n"
+            "id,name,price,brand,category\n"
+            "SP0001,Widget,10.0,BrandA,General\n"
+            "SP0001,Widget Updated,15.0,BrandA,General\n"
+            "SP0002,Widget,10.0,BrandB,General\n"
         )
 
         ingester = ProductIngester(db_session=db_session)
         result = ingester.run(csv_file)
 
-        assert result.successful == 2  # Widget|branda and Widget|brandb
+        assert result.successful == 2  # SP0001 and SP0002
         assert result.duplicates_skipped == 1
 
     def test_missing_optional_columns(self, db_session, tmp_path):
         csv_file = tmp_path / "products.csv"
         csv_file.write_text(
-            "name,price,category\n"
-            "Simple Item,9.99,General\n"
+            "id,name,price,category\n"
+            "SP0020,Simple Item,9.99,General\n"
         )
 
         ingester = ProductIngester(db_session=db_session)
@@ -90,8 +90,8 @@ class TestProductIngester:
     def test_invalid_rows_counted_as_failures(self, db_session, tmp_path):
         csv_file = tmp_path / "products.csv"
         csv_file.write_text(
-            "name,price,category\n"
-            "Good Item,10.0,Electronics\n"
+            "id,name,price,category\n"
+            "SP0030,Good Item,10.0,Electronics\n"
             ",0,\n"
         )
 
@@ -104,8 +104,8 @@ class TestProductIngester:
     def test_category_normalized_to_title_case(self, db_session, tmp_path):
         csv_file = tmp_path / "products.csv"
         csv_file.write_text(
-            "name,price,category\n"
-            "Item,10.0,home & kitchen\n"
+            "id,name,price,category\n"
+            "SP0040,Item,10.0,home & kitchen\n"
         )
 
         ingester = ProductIngester(db_session=db_session)

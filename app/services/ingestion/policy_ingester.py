@@ -1,8 +1,7 @@
-"""Policy/FAQ data ingestion pipeline."""
+"""Policy data ingestion pipeline."""
 
 import hashlib
 import logging
-from datetime import date
 from pathlib import Path
 
 import pandas as pd
@@ -15,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class PolicyIngester(DataIngestionPipeline[PolicyIngestionSchema]):
-    """Ingests store policy/FAQ data from CSV files."""
+    """Ingests store policy data from CSV files."""
 
     def _read_file(self, file_path: Path) -> pd.DataFrame:
         """Read policy CSV."""
@@ -25,28 +24,27 @@ class PolicyIngester(DataIngestionPipeline[PolicyIngestionSchema]):
 
     def _validate_row(self, row: pd.Series) -> PolicyIngestionSchema:
         """Validate a policy row."""
-        effective_date = row.get("effective_date", date.today().isoformat())
-        if isinstance(effective_date, str):
-            effective_date = date.fromisoformat(effective_date.strip())
+        timeframe = row.get("timeframe", 0)
+        timeframe = int(timeframe) if pd.notna(timeframe) else 0
 
         return PolicyIngestionSchema(
-            category=str(row.get("category", "")).strip(),
-            question=str(row.get("question", "")).strip(),
-            answer=str(row.get("answer", "")).strip(),
-            effective_date=effective_date,
+            policy_type=str(row.get("policy_type", "")).strip(),
+            description=str(row.get("description", "")).strip(),
+            conditions=str(row.get("conditions", "")).strip(),
+            timeframe=timeframe,
         )
 
     def _get_dedup_key(self, record: PolicyIngestionSchema) -> str:
-        """Deduplicate by category + question hash."""
-        q_hash = hashlib.md5(record.question.lower().encode()).hexdigest()[:12]
-        return f"{record.category.lower()}|{q_hash}"
+        """Deduplicate by policy_type + description hash."""
+        desc_hash = hashlib.md5(record.description.lower().encode()).hexdigest()[:12]
+        return f"{record.policy_type.lower()}|{desc_hash}"
 
     def _insert_record(self, record: PolicyIngestionSchema) -> None:
         """Insert validated policy into the database."""
         policy = Policy(
-            category=record.category,
-            question=record.question,
-            answer=record.answer,
-            effective_date=record.effective_date,
+            policy_type=record.policy_type,
+            description=record.description,
+            conditions=record.conditions,
+            timeframe=record.timeframe,
         )
         self.db.add(policy)

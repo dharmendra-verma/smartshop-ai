@@ -1,3 +1,4 @@
+
 # Story: SCRUM-7 - Build data ingestion pipeline for product catalogs and reviews
 
 ## 📋 Story Overview

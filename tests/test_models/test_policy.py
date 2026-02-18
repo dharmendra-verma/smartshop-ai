@@ -1,7 +1,6 @@
 """Tests for Policy model."""
 
 import pytest
-from datetime import date
 from sqlalchemy.exc import IntegrityError
 
 from app.models import Policy
@@ -10,58 +9,59 @@ from app.models import Policy
 def test_policy_creation(db_session):
     """Test creating a policy with all fields."""
     policy = Policy(
-        category="returns",
-        question="What is the return window?",
-        answer="30 days from purchase.",
-        effective_date=date(2026, 1, 1),
+        policy_type="returns",
+        description="Laptop Return Policy",
+        conditions="Laptop must be in unopened condition|All accessories included",
+        timeframe=14,
     )
     db_session.add(policy)
     db_session.commit()
 
     assert policy.policy_id is not None
-    assert policy.category == "returns"
-    assert policy.effective_date == date(2026, 1, 1)
+    assert policy.policy_type == "returns"
+    assert policy.timeframe == 14
 
 
-def test_policy_category_required(db_session):
-    """Test that category is required."""
-    policy = Policy(question="Q", answer="A", effective_date=date(2026, 1, 1))
+def test_policy_type_required(db_session):
+    """Test that policy_type is required."""
+    policy = Policy(description="D", conditions="C", timeframe=0)
     db_session.add(policy)
     with pytest.raises(IntegrityError):
         db_session.commit()
 
 
-def test_policy_question_required(db_session):
-    """Test that question is required."""
-    policy = Policy(category="test", answer="A", effective_date=date(2026, 1, 1))
+def test_policy_description_required(db_session):
+    """Test that description is required."""
+    policy = Policy(policy_type="test", conditions="C", timeframe=0)
     db_session.add(policy)
     with pytest.raises(IntegrityError):
         db_session.commit()
 
 
-def test_policy_answer_required(db_session):
-    """Test that answer is required."""
-    policy = Policy(category="test", question="Q", effective_date=date(2026, 1, 1))
+def test_policy_conditions_required(db_session):
+    """Test that conditions is required."""
+    policy = Policy(policy_type="test", description="D", timeframe=0)
     db_session.add(policy)
     with pytest.raises(IntegrityError):
         db_session.commit()
 
 
-def test_policy_effective_date_required(db_session):
-    """Test that effective_date is required."""
-    policy = Policy(category="test", question="Q", answer="A")
+def test_policy_timeframe_default(db_session):
+    """Test that timeframe defaults to 0."""
+    policy = Policy(policy_type="test", description="D", conditions="C")
     db_session.add(policy)
-    with pytest.raises(IntegrityError):
-        db_session.commit()
+    db_session.commit()
+    assert policy.timeframe == 0
 
 
 def test_policy_to_dict(sample_policy):
     """Test policy to_dict method."""
     policy_dict = sample_policy.to_dict()
 
-    assert policy_dict["category"] == "shipping"
-    assert policy_dict["question"] == "What is the shipping time?"
-    assert policy_dict["effective_date"] == "2026-01-01"
+    assert policy_dict["policy_type"] == "shipping"
+    assert policy_dict["description"] == "Standard Shipping Policy"
+    assert "|" in policy_dict["conditions"]
+    assert policy_dict["timeframe"] == 5
     assert "policy_id" in policy_dict
 
 
@@ -72,26 +72,26 @@ def test_policy_repr(sample_policy):
     assert "shipping" in repr_str
 
 
-def test_policy_query_by_category(db_session):
-    """Test querying policies by category."""
-    categories = ["shipping", "returns", "privacy", "shipping"]
-    for i, cat in enumerate(categories):
-        db_session.add(Policy(category=cat, question=f"Q{i}", answer=f"A{i}", effective_date=date(2026, 1, 1)))
+def test_policy_query_by_type(db_session):
+    """Test querying policies by policy_type."""
+    types = ["shipping", "returns", "warranty", "shipping"]
+    for i, pt in enumerate(types):
+        db_session.add(Policy(policy_type=pt, description=f"D{i}", conditions=f"C{i}", timeframe=i * 10))
     db_session.commit()
 
-    shipping = db_session.query(Policy).filter(Policy.category == "shipping").all()
+    shipping = db_session.query(Policy).filter(Policy.policy_type == "shipping").all()
     assert len(shipping) == 2
 
-    returns = db_session.query(Policy).filter(Policy.category == "returns").all()
+    returns = db_session.query(Policy).filter(Policy.policy_type == "returns").all()
     assert len(returns) == 1
 
 
-def test_policy_date_handling(db_session):
-    """Test effective_date is stored and retrieved correctly."""
-    policy = Policy(category="test", question="Q", answer="A", effective_date=date(2026, 6, 15))
+def test_policy_timeframe_handling(db_session):
+    """Test timeframe is stored and retrieved correctly."""
+    policy = Policy(policy_type="warranty", description="Extended Warranty", conditions="Covers defects", timeframe=365)
     db_session.add(policy)
     db_session.commit()
     db_session.refresh(policy)
 
-    assert policy.effective_date == date(2026, 6, 15)
-    assert policy.to_dict()["effective_date"] == "2026-06-15"
+    assert policy.timeframe == 365
+    assert policy.to_dict()["timeframe"] == 365

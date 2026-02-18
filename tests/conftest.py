@@ -39,12 +39,14 @@ def db_session(db_engine):
 def sample_product(db_session):
     """Create a sample product for testing."""
     product = Product(
+        id="SP0001",
         name="Test Product",
         description="Test Description",
         price=Decimal("99.99"),
         brand="TestBrand",
         category="Electronics",
-        image_url="https://example.com/test.jpg",
+        stock=50,
+        rating=4.2,
     )
     db_session.add(product)
     db_session.commit()
@@ -56,10 +58,11 @@ def sample_product(db_session):
 def sample_review(db_session, sample_product):
     """Create a sample review for testing."""
     review = Review(
-        product_id=sample_product.product_id,
-        rating=4,
-        review_text="Great product!",
+        product_id=sample_product.id,
+        rating=4.0,
+        text="Great product!",
         sentiment="positive",
+        review_date=date(2025, 1, 15),
     )
     db_session.add(review)
     db_session.commit()
@@ -71,10 +74,10 @@ def sample_review(db_session, sample_product):
 def sample_policy(db_session):
     """Create a sample policy for testing."""
     policy = Policy(
-        category="shipping",
-        question="What is the shipping time?",
-        answer="Standard shipping takes 3-5 business days.",
-        effective_date=date(2026, 1, 1),
+        policy_type="shipping",
+        description="Standard Shipping Policy",
+        conditions="Order subtotal must be at least $50|Eligible for contiguous U.S. only",
+        timeframe=5,
     )
     db_session.add(policy)
     db_session.commit()

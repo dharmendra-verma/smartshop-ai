@@ -33,7 +33,7 @@ DATA_DIR = Path("data/raw")
 INGESTERS = {
     "products": (ProductIngester, "products*.csv"),
     "reviews": (ReviewIngester, "reviews*.csv"),
-    "policies": (PolicyIngester, "policies*.csv"),
+    "policies": (PolicyIngester, "*policies*.csv"),
 }
 
 

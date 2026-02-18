@@ -25,9 +25,6 @@ COLUMN_MAPPINGS = {
     "main_category": "category",
     "sub_category": "category",
     "product_category": "category",
-    "img_link": "image_url",
-    "image": "image_url",
-    "product_image": "image_url",
 }
 
 
@@ -54,28 +51,37 @@ class ProductIngester(DataIngestionPipeline[ProductIngestionSchema]):
             price = price.replace("\u20b9", "").replace("$", "").replace(",", "").strip()
             price = float(price) if price else 0
 
+        stock = row.get("stock")
+        stock = int(stock) if pd.notna(stock) else None
+
+        rating = row.get("rating")
+        rating = float(rating) if pd.notna(rating) else None
+
         return ProductIngestionSchema(
+            id=str(row.get("id", "")).strip(),
             name=str(row.get("name", "")).strip(),
             description=str(row.get("description", "")) if pd.notna(row.get("description")) else None,
             price=float(price),
             brand=str(row.get("brand", "")).strip() if pd.notna(row.get("brand")) else None,
             category=str(row.get("category", "General")).strip(),
-            image_url=str(row.get("image_url", "")).strip() if pd.notna(row.get("image_url")) else None,
+            stock=stock,
+            rating=rating,
         )
 
     def _get_dedup_key(self, record: ProductIngestionSchema) -> str:
-        """Deduplicate by lowercase name + brand."""
-        brand = (record.brand or "").lower()
-        return f"{record.name.lower()}|{brand}"
+        """Deduplicate by product ID."""
+        return record.id.lower()
 
     def _insert_record(self, record: ProductIngestionSchema) -> None:
         """Insert validated product into the database."""
         product = Product(
+            id=record.id,
             name=record.name,
             description=record.description,
             price=record.price,
             brand=record.brand,
             category=record.category,
-            image_url=record.image_url,
+            stock=record.stock,
+            rating=record.rating,
         )
         self.db.add(product)

@@ -61,7 +61,7 @@ def test_session_lifecycle():
     factory = get_session_factory(engine)
 
     session = factory()
-    session.add(Product(name="Test", price=10.00, category="Test"))
+    session.add(Product(id="TEST001", name="Test", price=10.00, category="Test"))
     session.commit()
 
     result = session.query(Product).first()

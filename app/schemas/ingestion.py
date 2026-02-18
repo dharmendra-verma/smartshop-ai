@@ -9,12 +9,14 @@ from pydantic import BaseModel, Field, field_validator
 class ProductIngestionSchema(BaseModel):
     """Validates incoming product data before DB insertion."""
 
+    id: str = Field(..., min_length=1, max_length=20)
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
     price: float = Field(..., gt=0)
     brand: Optional[str] = Field(None, max_length=100)
     category: str = Field(..., min_length=1, max_length=100)
-    image_url: Optional[str] = Field(None, max_length=500)
+    stock: Optional[int] = Field(None, ge=0)
+    rating: Optional[float] = Field(None, ge=0.0, le=5.0)
 
     @field_validator("price")
     @classmethod
@@ -34,14 +36,15 @@ class ProductIngestionSchema(BaseModel):
 class ReviewIngestionSchema(BaseModel):
     """Validates incoming review data before DB insertion."""
 
-    product_id: int = Field(..., gt=0)
-    rating: int = Field(..., ge=1, le=5)
-    review_text: Optional[str] = None
+    product_id: str = Field(..., min_length=1)
+    rating: float = Field(..., ge=1.0, le=5.0)
+    text: Optional[str] = None
     sentiment: Optional[str] = Field(None, pattern=r"^(positive|negative|neutral)$")
+    review_date: Optional[date] = None
 
-    @field_validator("review_text")
+    @field_validator("text")
     @classmethod
-    def clean_review_text(cls, v: Optional[str]) -> Optional[str]:
+    def clean_text(cls, v: Optional[str]) -> Optional[str]:
         if v is not None:
             v = v.strip()
             return v if len(v) > 0 else None
@@ -51,10 +54,10 @@ class ReviewIngestionSchema(BaseModel):
 class PolicyIngestionSchema(BaseModel):
     """Validates incoming policy data before DB insertion."""
 
-    category: str = Field(..., min_length=1, max_length=100)
-    question: str = Field(..., min_length=1)
-    answer: str = Field(..., min_length=1)
-    effective_date: date
+    policy_type: str = Field(..., min_length=1, max_length=100)
+    description: str = Field(..., min_length=1)
+    conditions: str = Field(..., min_length=1)
+    timeframe: int = Field(..., ge=0)
 
 
 class IngestionResult(BaseModel):

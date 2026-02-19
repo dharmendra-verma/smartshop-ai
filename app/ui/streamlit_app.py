@@ -1,160 +1,241 @@
-"""SmartShop AI - Streamlit User Interface."""
+"""SmartShop AI — Streamlit User Interface."""
 
+import os
 import streamlit as st
-import requests
-from datetime import datetime
 
-# Page configuration
+from app.ui.api_client import (
+    health_check,
+    get_recommendations,
+    summarize_reviews,
+    search_products,
+)
+from app.ui.components.product_card import render_product_grid
+from app.ui.components.review_display import render_review_summary
+from app.ui.components.chat_helpers import (
+    detect_intent,
+    format_recommendation_message,
+    format_review_message,
+)
+
+# -- Config --------------------------------------------------------------------
 st.set_page_config(
     page_title="SmartShop AI",
     page_icon="🛒",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
-# Custom CSS
 st.markdown("""
 <style>
-    .main-header {
-        font-size: 3rem;
-        font-weight: bold;
-        color: #1f77b4;
-    }
-    .sub-header {
-        font-size: 1.2rem;
-        color: #666;
-        margin-bottom: 2rem;
-    }
+    .main-header { font-size: 2.5rem; font-weight: bold; color: #1f77b4; }
+    .sub-header  { font-size: 1.1rem; color: #666; margin-bottom: 1.5rem; }
 </style>
 """, unsafe_allow_html=True)
 
-# Title
-st.markdown('<p class="main-header">🛒 SmartShop AI</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-header">Your AI-Powered Shopping Assistant</p>', unsafe_allow_html=True)
-
-# Sidebar
+# -- Sidebar -------------------------------------------------------------------
 with st.sidebar:
-    st.header("📋 Navigation")
+    st.markdown('<p class="main-header">🛒 SmartShop</p>', unsafe_allow_html=True)
+    st.caption("AI-Powered Shopping Assistant")
+    st.divider()
+
     page = st.radio(
-        "Select Module",
-        ["🤖 AI Chat Assistant", "🔍 Product Search", "💰 Price Comparison", "⭐ Review Summarization"],
-        label_visibility="collapsed"
+        "Navigation",
+        [
+            "🤖 AI Chat Assistant",
+            "🔍 Product Search & Recommendations",
+            "⭐ Review Summarization",
+            "💰 Pricing Insights",
+        ],
+        label_visibility="collapsed",
     )
 
     st.divider()
-
     st.subheader("⚙️ Settings")
-    api_url = st.text_input("API URL", "http://localhost:8000", help="FastAPI backend URL")
+    # Read from env var (Docker) or allow manual override
+    default_url = os.getenv("API_URL", "http://localhost:8080")
+    api_url = st.text_input("API URL", default_url)
 
-    st.divider()
+    # Backend status indicator
+    if health_check(api_url):
+        st.success("✅ Backend connected")
+    else:
+        st.error("❌ Backend unreachable")
+        st.caption(f"Ensure FastAPI is running at {api_url}")
 
-    # Connection status
-    try:
-        response = requests.get(f"{api_url}/health", timeout=2)
-        if response.status_code == 200:
-            st.success("✅ Connected to backend")
-        else:
-            st.error("❌ Backend not responding")
-    except:
-        st.warning("⚠️ Cannot connect to backend")
-        st.caption("Make sure FastAPI is running on port 8000")
-
-# Main content area
+# -- Page: AI Chat Assistant ---------------------------------------------------
 if page == "🤖 AI Chat Assistant":
     st.header("AI Shopping Assistant")
-    st.caption("Ask me anything about products, prices, reviews, or store policies!")
+    st.caption(
+        "Ask me to find products or summarize reviews. "
+        "Try: _'Show me laptops under $800'_ or _'Summarize reviews for Samsung'_"
+    )
 
-    # Initialize chat history
+    # Initialise chat history
     if "messages" not in st.session_state:
-        st.session_state.messages = [{
-            "role": "assistant",
-            "content": "👋 Hi! I'm your AI shopping assistant. I can help you discover products, compare prices, summarize reviews, and answer policy questions. What are you looking for today?"
-        }]
+        st.session_state.messages = [
+            {
+                "role": "assistant",
+                "content": (
+                    "👋 Hi! I'm your AI shopping assistant. I can help you:\n\n"
+                    "- 🔍 **Find products** — _'Recommend budget headphones under $100'_\n"
+                    "- ⭐ **Summarize reviews** — _'What do customers say about Sony speakers?'_\n\n"
+                    "What are you looking for today?"
+                ),
+            }
+        ]
 
-    # Display chat history
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+    # Display history
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
 
     # Chat input
-    if prompt := st.chat_input("Ask me anything about products..."):
-        # Add user message
+    if prompt := st.chat_input("Ask me about products or reviews..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # TODO: Call FastAPI backend once agents are implemented
+        # Route and call API
+        # TODO SCRUM-16: Replace detect_intent() with POST /api/v1/chat orchestrator call
+        intent = detect_intent(prompt)
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                # Placeholder response - replace with actual API call
-                response = f"I received your query: '{prompt}'. Once the backend agents are implemented, I'll provide intelligent responses!"
-                st.markdown(response)
-                st.info("💡 **Next Steps:** Implement the agent endpoints in FastAPI to enable real AI responses.")
+                if intent == "review":
+                    result = summarize_reviews(api_url, query=prompt)
+                    if result["success"]:
+                        reply = format_review_message(result["data"])
+                    else:
+                        reply = f"⚠️ {result['error']}"
+                else:
+                    result = get_recommendations(api_url, query=prompt, max_results=5)
+                    if result["success"]:
+                        reply = format_recommendation_message(result["data"])
+                    else:
+                        reply = f"⚠️ {result['error']}"
+            st.markdown(reply)
+        st.session_state.messages.append({"role": "assistant", "content": reply})
 
-            st.session_state.messages.append({"role": "assistant", "content": response})
+    # Clear chat button
+    if st.button("🗑️ Clear Chat", type="secondary"):
+        st.session_state.messages = []
+        st.rerun()
 
-elif page == "🔍 Product Search":
-    st.header("Product Search")
+# -- Page: Product Search & Recommendations -----------------------------------
+elif page == "🔍 Product Search & Recommendations":
+    st.header("Product Search & Recommendations")
 
-    col1, col2, col3 = st.columns(3)
+    tab_search, tab_recommend = st.tabs(["🔍 Filter Search", "🤖 AI Recommendations"])
 
-    with col1:
-        category = st.selectbox("Category", ["All", "Electronics", "Clothing", "Home & Kitchen", "Books"])
+    # Tab 1: Structured filter search
+    with tab_search:
+        col1, col2 = st.columns(2)
+        with col1:
+            category = st.selectbox(
+                "Category",
+                ["All", "smartphones", "laptops", "headphones", "speakers", "tablets", "cameras"],
+            )
+        with col2:
+            brand = st.text_input("Brand (optional)", placeholder="e.g. Samsung, Apple")
 
-    with col2:
-        min_price = st.number_input("Min Price ($)", min_value=0, value=0)
+        if st.button("Search Products", type="primary"):
+            with st.spinner("Searching..."):
+                result = search_products(
+                    api_url,
+                    category=category if category != "All" else None,
+                    brand=brand or None,
+                    page_size=12,
+                )
+            if result["success"]:
+                data = result["data"]
+                st.success(f"Found {data['total']} products (showing {len(data['items'])})")
+                render_product_grid(data["items"], cols=3)
+            else:
+                st.error(result["error"])
 
-    with col3:
-        max_price = st.number_input("Max Price ($)", min_value=0, value=1000)
+    # Tab 2: AI recommendation
+    with tab_recommend:
+        nl_query = st.text_input(
+            "Describe what you're looking for",
+            placeholder="e.g. 'best wireless headphones for gym use under $150'",
+        )
+        max_results = st.slider("Number of recommendations", 1, 10, 5)
 
-    search_query = st.text_input("🔍 Search for products...")
+        if st.button("Get AI Recommendations", type="primary"):
+            if not nl_query.strip():
+                st.warning("Please enter a search query.")
+            else:
+                with st.spinner("Finding the best matches for you..."):
+                    result = get_recommendations(
+                        api_url, query=nl_query, max_results=max_results
+                    )
+                if result["success"]:
+                    data = result["data"]
+                    st.success(f"Found {data['total_found']} recommendation(s)")
+                    if data.get("reasoning_summary"):
+                        st.info(f"💡 {data['reasoning_summary']}")
+                    render_product_grid(data["recommendations"], cols=3)
+                else:
+                    st.error(result["error"])
 
-    if st.button("Search", type="primary"):
-        st.info("🚧 Product search functionality coming soon! Connect to the Product Recommendation Agent.")
-
-elif page == "💰 Price Comparison":
-    st.header("Price Comparison")
-    st.write("Compare prices across multiple retailers")
-
-    product_input = st.text_input("Enter product name or ID")
-
-    if st.button("Compare Prices", type="primary"):
-        st.info("🚧 Price comparison functionality coming soon! Connect to the Price Comparison Agent.")
-
-    # Placeholder comparison table
-    with st.expander("Example: How it will look"):
-        import pandas as pd
-        example_data = {
-            "Retailer": ["Amazon", "Walmart", "Best Buy", "Target"],
-            "Price": ["$299.99", "$289.99", "$309.99", "$295.99"],
-            "Availability": ["In Stock", "In Stock", "Out of Stock", "Limited"],
-            "Rating": ["4.5⭐", "4.3⭐", "4.6⭐", "4.4⭐"]
-        }
-        st.dataframe(pd.DataFrame(example_data), use_container_width=True)
-
+# -- Page: Review Summarization ------------------------------------------------
 elif page == "⭐ Review Summarization":
     st.header("Review Summarization")
-    st.write("Get AI-powered summaries of customer reviews")
+    st.caption("Get AI-powered summaries of what customers say about any product.")
 
-    product_id = st.text_input("Enter product name or ID")
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        query = st.text_input(
+            "Product name or question",
+            placeholder="e.g. 'Summarize reviews for Sony WH-1000XM5'",
+        )
+    with col2:
+        product_id = st.text_input("Product ID (optional)", placeholder="e.g. PROD001")
+
+    max_reviews = st.slider("Reviews to analyse", 5, 50, 20, step=5)
 
     if st.button("Summarize Reviews", type="primary"):
-        st.info("🚧 Review summarization functionality coming soon! Connect to the Review Summarization Agent.")
+        if not query.strip():
+            st.warning("Please enter a product name or question.")
+        else:
+            with st.spinner("Analysing customer reviews..."):
+                result = summarize_reviews(
+                    api_url,
+                    query=query,
+                    product_id=product_id.strip() or None,
+                    max_reviews=max_reviews,
+                )
+            if result["success"]:
+                data = result["data"]
+                st.subheader(f"Reviews for: **{data.get('product_name', query)}**")
+                render_review_summary(data)
+            else:
+                st.error(result["error"])
 
-    # Placeholder summary
-    with st.expander("Example: How it will look"):
-        st.subheader("Positive Themes")
-        st.write("✅ Great build quality (confidence: 85%)")
-        st.write("✅ Easy to use (confidence: 78%)")
-        st.write("✅ Good value for money (confidence: 72%)")
+# -- Page: Pricing Insights ----------------------------------------------------
+elif page == "💰 Pricing Insights":
+    st.header("Pricing Insights")
+    st.caption("Compare prices and find the best deals.")
 
-        st.subheader("Negative Themes")
-        st.write("❌ Battery life could be better (confidence: 65%)")
-        st.write("❌ Customer service issues (confidence: 58%)")
+    st.info(
+        "🚧 **Coming in SCRUM-14** — Price Comparison Agent will provide real-time "
+        "pricing data, deal alerts, and side-by-side comparisons. "
+        "Use **Product Search & Recommendations** in the meantime to explore products by price range."
+    )
 
-        st.metric("Overall Sentiment", "4.2/5.0", "+0.3")
+    # Preview of what it will look like
+    with st.expander("Preview: What Pricing Insights will show"):
+        import pandas as pd
+        st.dataframe(
+            pd.DataFrame({
+                "Product": ["Phone A", "Phone B", "Phone C"],
+                "Our Price": ["$299", "$349", "$399"],
+                "Avg Market": ["$319", "$339", "$419"],
+                "Deal Score": ["🔥 Good", "✅ Fair", "⭐ Best"],
+                "In Stock": ["Yes", "Yes", "Low"],
+            }),
+            use_container_width=True,
+        )
 
-# Footer
+# -- Footer --------------------------------------------------------------------
 st.divider()
-st.caption(f"SmartShop AI v1.0.0 | Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-st.caption("🤖 Powered by Claude Sonnet 4.5 & FastAPI")
+st.caption("SmartShop AI v1.0.0 · Powered by pydantic-ai & FastAPI")

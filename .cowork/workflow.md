@@ -1,41 +1,31 @@
 # Jira to Development Workflow
+ You have to task to do. Based on user query either of task 1 or 2 need to be done by you.
 
-## When I move a Jira story to "In Progress":
-
+## Task 1. When User ask to work on "In Progress" user story:
 1. Fetch the user story details from Jira
-2. Create an implementation plan in `plans/epic-ID/STORY-ID.md`
-3. Break down into tasks in `plans/epic-ID/STORY-ID.md`
-4. Include:
+3. Check Jira for any story that's in progress
+4. If no story is in progress then notify the user and stop working. You are not allowed to make story move to in progress state
+4. Create an implementation plan in `plans/plan/STORY-ID.md`
+5. Break down into tasks in `plans/plan/STORY-ID.md`
+6. Include:
    - Acceptance criteria
    - Technical approach
    - File structure needed
    - Testing requirements
+5. Follow this Plan Format:
+   - Use markdown
+   - Include story ID and title
+   - List dependencies
+   - Estimate complexity
 
-## Plan Format:
 
-- Use markdown
-- Include story ID and title
-- List dependencies
-- Estimate complexity
-
-## After Claude Code Completes Implementation:
-1. Read the completion report from docs/completion/STORY-ID.md
-2. Update Jira story STORY-ID:
+## Task 2. When user ask to work on completed story in the project:
+1. Read the completion report from `.progress/STORY-ID.md` for `plans/inprogress/STORY-ID.md` todo
+2. If you stasified then move `plans/inprogress/STORY-ID.md` to `plans/completed/STORY-ID.md`
+3. Update Jira story STORY-ID:
    - Move to "Code Review" or "Done" status
    - Add comment with implementation summary
    - Link the files modified
    - Update estimated vs actual time (if tracked)
-3. Notify me of completion
+4. Notify me of completion
 
-```
-## Practical Workflow (Step-by-Step)
-
-**Here's what you actually do:**
-
-1. **In Jira:** Move story "PROJ-123" to "In Progress"
-
-2. **Open Cowork and prompt it:**
-```
-   "Check Jira for any story that's in progress. 
-   Create an implementation plan in plans folder
-   following the workflow in .cowork/workflow.md"

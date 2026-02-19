@@ -9,7 +9,7 @@ import requests
 from typing import Any
 
 logger = logging.getLogger(__name__)
-DEFAULT_TIMEOUT = 10  # seconds
+DEFAULT_TIMEOUT = 60  # seconds – agent endpoints call LLMs and need more time
 
 
 def _get(url: str, params: dict | None = None) -> dict[str, Any]:

@@ -10,7 +10,25 @@
       "Bash(\"c:/Users/to_dh/AppData/Roaming/Claude/Working/smartshop-ai/venv/Scripts/pip3.exe\" install sqlalchemy alembic pydantic-settings)",
       "Bash(venv/Scripts/pip install:*)",
       "Bash(ls:*)",
-      "Bash(c:/Users/to_dh/AppData/Roaming/Claude/Working/smartshop-ai/venv/Scripts/pip3.exe install pandas)"
+      "Bash(c:/Users/to_dh/AppData/Roaming/Claude/Working/smartshop-ai/venv/Scripts/pip3.exe install pandas)",
+      "mcp__claude_ai_Atlassian__transitionJiraIssue",
+      "mcp__claude_ai_Atlassian__addCommentToJiraIssue",
+      "mcp__claude_ai_Atlassian__getJiraIssue",
+      "mcp__claude_ai_Atlassian__getAccessibleAtlassianResources",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
-  }
+  },
+  "skipUserApproval": true,
+  "allowedTools": [
+    "mcp__claude_ai_Atlassian__transitionJiraIssue",
+    "mcp__claude_ai_Atlassian__createJiraIssue",
+    "mcp__claude_ai_Atlassian__editJiraIssue",
+    "mcp__claude_ai_Atlassian__addCommentToJiraIssue",
+    "mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql",
+    "mcp__claude_ai_Atlassian__getJiraIssue",
+    "mcp__claude_ai_Atlassian__searchJiraIssuesUsingJql",
+    "mcp__claude_ai_Atlassian__getVisibleJiraProjects"
+  ]
 }

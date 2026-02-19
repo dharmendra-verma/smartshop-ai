@@ -8,6 +8,7 @@ from app.core.config import get_settings
 from app.core.logging import setup_logging
 from app.api import health
 from app.api.v1 import router as v1_router
+from app.api.v1.price import router as price_router
 from app.middleware.error_handler import ErrorHandlerMiddleware
 from app.middleware.logging_middleware import RequestLoggingMiddleware
 
@@ -39,6 +40,7 @@ app.add_middleware(
 # Routers
 app.include_router(health.router, tags=["health"])
 app.include_router(v1_router)
+app.include_router(price_router, prefix="/api/v1", tags=["price"])
 
 
 @app.on_event("startup")

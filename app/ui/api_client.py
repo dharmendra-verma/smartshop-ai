@@ -146,3 +146,14 @@ def search_products(
     if brand:
         params["brand"] = brand
     return _get(f"{api_url}/api/v1/products", params=params)
+
+def compare_prices(
+    api_url: str,
+    query: str,
+    max_results: int = 4,
+) -> dict[str, Any]:
+    """
+    Call POST /api/v1/price/compare.
+    Returns {"success": bool, "data": PriceCompareResponse dict, "error": str | None}
+    """
+    return _post(f"{api_url}/api/v1/price/compare", {"query": query, "max_results": max_results})

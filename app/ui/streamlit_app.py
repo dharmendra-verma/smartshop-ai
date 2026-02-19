@@ -8,6 +8,7 @@ from app.ui.api_client import (
     get_recommendations,
     summarize_reviews,
     search_products,
+    compare_prices,
 )
 from app.ui.components.product_card import render_product_grid
 from app.ui.components.review_display import render_review_summary
@@ -214,27 +215,53 @@ elif page == "⭐ Review Summarization":
 # -- Page: Pricing Insights ----------------------------------------------------
 elif page == "💰 Pricing Insights":
     st.header("Pricing Insights")
-    st.caption("Compare prices and find the best deals.")
-
-    st.info(
-        "🚧 **Coming in SCRUM-14** — Price Comparison Agent will provide real-time "
-        "pricing data, deal alerts, and side-by-side comparisons. "
-        "Use **Product Search & Recommendations** in the meantime to explore products by price range."
+    st.caption(
+        "Compare prices across Amazon, BestBuy, and Walmart to find the best deal."
     )
 
-    # Preview of what it will look like
-    with st.expander("Preview: What Pricing Insights will show"):
-        import pandas as pd
-        st.dataframe(
-            pd.DataFrame({
-                "Product": ["Phone A", "Phone B", "Phone C"],
-                "Our Price": ["$299", "$349", "$399"],
-                "Avg Market": ["$319", "$339", "$419"],
-                "Deal Score": ["🔥 Good", "✅ Fair", "⭐ Best"],
-                "In Stock": ["Yes", "Yes", "Low"],
-            }),
-            use_container_width=True,
-        )
+    query = st.text_input(
+        "What would you like to compare?",
+        placeholder="e.g. 'Compare Samsung S24 and Google Pixel 8'",
+    )
+    max_results = st.slider("Max products to compare", 2, 6, 4)
+
+    if st.button("Compare Prices", type="primary"):
+        if not query.strip():
+            st.warning("Please enter a comparison query.")
+        else:
+            with st.spinner("Fetching prices from multiple sources..."):
+                result = compare_prices(api_url, query=query, max_results=max_results)
+
+            if result["success"]:
+                data = result["data"]
+                st.success(f"Compared **{data['total_compared']}** products")
+
+                # Best deal highlight
+                st.info(f"🏆 **Best Deal:** {data['best_deal']}\n\n{data['recommendation']}")
+
+                # Side-by-side comparison table
+                if data["products"]:
+                    import pandas as pd
+
+                    # Build comparison DataFrame
+                    rows = []
+                    for p in data["products"]:
+                        row = {
+                            "Product": p["name"],
+                            "SmartShop": f"${p['our_price']:,.2f}",
+                        }
+                        for pp in p["competitor_prices"]:
+                            row[pp["source"]] = f"${pp['price']:,.2f}" + (" ✓" if pp["is_best"] else "")
+                        row["Best Price"] = f"${p['best_price']:,.2f} ({p['best_source']})"
+                        row["Savings"] = f"{p['savings_pct']:.1f}%" if p["savings_pct"] > 0 else "—"
+                        row["Rating"] = f"{'⭐' * round(p['rating'])} ({p['rating']:.1f})" if p.get("rating") else "N/A"
+                        row["Cached"] = "♻️" if p.get("is_cached") else "🔴 Live"
+                        rows.append(row)
+
+                    df = pd.DataFrame(rows).set_index("Product")
+                    st.dataframe(df, use_container_width=True)
+            else:
+                st.error(result["error"])
 
 # -- Footer --------------------------------------------------------------------
 st.divider()

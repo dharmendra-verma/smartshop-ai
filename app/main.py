@@ -9,6 +9,7 @@ from app.core.logging import setup_logging
 from app.api import health
 from app.api.v1 import router as v1_router
 from app.middleware.error_handler import ErrorHandlerMiddleware
+from app.middleware.logging_middleware import RequestLoggingMiddleware
 
 # Initialize logging first
 setup_logging()
@@ -24,8 +25,9 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# Middleware (order matters — error handler wraps everything)
+# Middleware (order matters — error handler wraps everything, logger wraps inner app)
 app.add_middleware(ErrorHandlerMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,

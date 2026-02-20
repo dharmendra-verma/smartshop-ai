@@ -9,6 +9,7 @@ from app.core.logging import setup_logging
 from app.api import health
 from app.api.v1 import router as v1_router
 from app.api.v1.price import router as price_router
+from app.api.v1.policy import router as policy_router
 from app.middleware.error_handler import ErrorHandlerMiddleware
 from app.middleware.logging_middleware import RequestLoggingMiddleware
 
@@ -41,12 +42,25 @@ app.add_middleware(
 app.include_router(health.router, tags=["health"])
 app.include_router(v1_router)
 app.include_router(price_router, prefix="/api/v1", tags=["price"])
+app.include_router(policy_router, prefix="/api/v1", tags=["policy"])
 
 
 @app.on_event("startup")
 async def startup_event():
     logger.info("Starting %s v%s", settings.APP_NAME, settings.APP_VERSION)
     logger.info("Docs: http://%s:%s/docs", settings.API_HOST, settings.API_PORT)
+
+    from app.agents.policy.agent import get_vector_store
+    from app.models.policy import Policy
+    from app.core.database import get_db
+    db = next(get_db())
+    try:
+        policies = db.query(Policy).all()
+        if policies:
+            get_vector_store().load_or_build(policies)
+            logger.info("PolicyVectorStore ready with %d policies", len(policies))
+    finally:
+        db.close()
 
 
 @app.on_event("shutdown")

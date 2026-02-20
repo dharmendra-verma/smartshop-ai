@@ -26,12 +26,8 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-st.markdown("""
-<style>
-    .main-header { font-size: 2.5rem; font-weight: bold; color: #1f77b4; }
-    .sub-header  { font-size: 1.1rem; color: #666; margin-bottom: 1.5rem; }
-</style>
-""", unsafe_allow_html=True)
+from app.ui.design_tokens import get_global_css
+st.markdown(get_global_css(), unsafe_allow_html=True)
 
 # -- Sidebar -------------------------------------------------------------------
 with st.sidebar:
@@ -111,10 +107,18 @@ if page == "🤖 AI Chat Assistant":
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
+            if msg.get("timestamp"):
+                import datetime
+                ts = datetime.datetime.fromtimestamp(msg["timestamp"]).strftime("%H:%M")
+                st.markdown(
+                    f'<div class="chat-timestamp">{ts}</div>',
+                    unsafe_allow_html=True,
+                )
 
     # Chat input
     if prompt := st.chat_input("Ask me about products or reviews..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
+        import time
+        st.session_state.messages.append({"role": "user", "content": prompt, "timestamp": time.time()})
         with st.chat_message("user"):
             st.markdown(prompt)
 
@@ -146,7 +150,16 @@ if page == "🤖 AI Chat Assistant":
                 else:
                     reply = f"⚠️ {result['error']}"
             st.markdown(reply)
-        st.session_state.messages.append({"role": "assistant", "content": reply})
+            import datetime, time
+            st.markdown(
+                f'<div class="chat-timestamp">{datetime.datetime.now().strftime("%H:%M")}</div>',
+                unsafe_allow_html=True,
+            )
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": reply,
+            "timestamp": time.time()
+        })
 
 
 
@@ -223,7 +236,14 @@ elif page == "⭐ Review Summarization":
 
     max_reviews = st.slider("Reviews to analyse", 5, 50, 20, step=5)
 
-    if st.button("Summarize Reviews", type="primary"):
+    if not query.strip() and not st.session_state.get("review_submitted"):
+        from app.ui.design_tokens import render_empty_state
+        st.markdown(
+            render_empty_state("⭐", "Enter a product name above to summarise its reviews.",
+                               "Try: 'Sony WH-1000XM5' or 'Samsung Galaxy S24'"),
+            unsafe_allow_html=True,
+        )
+    elif st.button("Summarize Reviews", type="primary"):
         if not query.strip():
             st.warning("Please enter a product name or question.")
         else:
@@ -254,7 +274,14 @@ elif page == "💰 Pricing Insights":
     )
     max_results = st.slider("Max products to compare", 2, 6, 4)
 
-    if st.button("Compare Prices", type="primary"):
+    if not query.strip():
+        from app.ui.design_tokens import render_empty_state
+        st.markdown(
+            render_empty_state("💰", "Enter a comparison search above.",
+                               "Try: 'Compare Samsung S24 and Google Pixel 8'"),
+            unsafe_allow_html=True,
+        )
+    elif st.button("Compare Prices", type="primary"):
         if not query.strip():
             st.warning("Please enter a comparison query.")
         else:

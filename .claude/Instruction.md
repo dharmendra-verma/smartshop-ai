@@ -5,7 +5,7 @@ Plan and start working in below sequence and with given instruciton
 1. Pick the first `STORY-ID.md` Move it under `plans/inprogress/STORY-ID.md` folder
 2. Analyze the `plans/inprogress/STORY-ID.md` and if needed create task as well within this todo 
 3. Kepp on tracking the time spent by you on this implementation 
-4. Do Implemention in src/ following our project structure
+4. Do Implemention in app/ following our project structure
 5. Create/update tests in tests/
 6. Run test suite
 7. Run the applicaiton to check if everything is ok

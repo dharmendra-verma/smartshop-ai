@@ -5,17 +5,14 @@ import streamlit as st
 
 def render_sentiment_themes(themes: list[dict], label: str, emoji: str) -> None:
     """Render a list of sentiment themes with confidence bars."""
-    st.markdown(f"**{emoji} {label}**")
+    st.markdown(f"**{label}**")
     if not themes:
         st.caption("No themes identified.")
         return
     for theme in themes:
         confidence = theme.get("confidence", 0)
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.progress(confidence, text=theme.get("theme", ""))
-        with col2:
-            st.caption(f"{confidence:.0%}")
+        st.markdown(f"{emoji} **{theme.get('theme', '')}**")
+        st.progress(confidence, text=f"{confidence:.0%} of reviewers mention this")
         if theme.get("example_quote"):
             st.caption(f'_"{theme["example_quote"]}"_')
 

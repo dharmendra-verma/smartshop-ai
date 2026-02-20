@@ -1,0 +1,11 @@
+[theme]
+# SmartShop AI brand palette
+primaryColor        = "#1f77b4"   # brand blue
+backgroundColor     = "#ffffff"
+secondaryBackgroundColor = "#f0f4f8"
+textColor           = "#1a1a2e"
+font                = "sans serif"
+
+[server]
+headless            = true
+enableCORS          = false

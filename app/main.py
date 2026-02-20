@@ -50,6 +50,8 @@ app.include_router(chat_router, prefix="/api/v1", tags=["chat"])
 @app.on_event("startup")
 async def startup_event():
     logger.info("Starting %s v%s", settings.APP_NAME, settings.APP_VERSION)
+    from app.services.session.session_store import get_session_store
+    get_session_store()
     logger.info("Docs: http://%s:%s/docs", settings.API_HOST, settings.API_PORT)
 
     from app.agents.policy.agent import get_vector_store

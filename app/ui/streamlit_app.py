@@ -63,6 +63,28 @@ with st.sidebar:
         st.error("❌ Backend unreachable")
         st.caption(f"Ensure FastAPI is running at {api_url}")
 
+    import uuid
+    if "session_id" not in st.session_state:
+        st.session_state["session_id"] = str(uuid.uuid4())
+    
+    st.divider()
+    if st.button("🗑️ Clear Conversation", use_container_width=True):
+        from app.ui.api_client import _post
+        _post(f"{api_url}/api/v1/chat/session/{st.session_state['session_id']}", {})
+        st.session_state["messages"] = [
+            {
+                "role": "assistant",
+                "content": (
+                    "👋 Hi! I'm your AI shopping assistant. I can help you:\n\n"
+                    "- 🔍 **Find products** — _'Recommend budget headphones under $100'_\n"
+                    "- ⭐ **Summarize reviews** — _'What do customers say about Sony speakers?'_\n\n"
+                    "What are you looking for today?"
+                ),
+            }
+        ]
+        st.session_state["session_id"] = str(uuid.uuid4())
+        st.rerun()
+
 # -- Page: AI Chat Assistant ---------------------------------------------------
 if page == "🤖 AI Chat Assistant":
     st.header("AI Shopping Assistant")
@@ -102,6 +124,8 @@ if page == "🤖 AI Chat Assistant":
             with st.spinner("Thinking..."):
                 result = chat_api(api_url, message=prompt, session_id=st.session_state.get("session_id"), max_results=5)
                 if result["success"]:
+                    if result["data"].get("session_id"):
+                        st.session_state["session_id"] = result["data"]["session_id"]
                     data   = result["data"]
                     intent = data.get("intent", "general")
                     agent_resp = data.get("response", {})
@@ -124,10 +148,7 @@ if page == "🤖 AI Chat Assistant":
             st.markdown(reply)
         st.session_state.messages.append({"role": "assistant", "content": reply})
 
-    # Clear chat button
-    if st.button("🗑️ Clear Chat", type="secondary"):
-        st.session_state.messages = []
-        st.rerun()
+
 
 # -- Page: Product Search & Recommendations -----------------------------------
 elif page == "🔍 Product Search & Recommendations":

@@ -16,6 +16,7 @@ class ChatRequest(BaseModel):
     max_results: int = Field(default=5, ge=1, le=20)
 
 class ChatResponse(BaseModel):
+    session_id: str
     message:    str
     intent:     IntentType
     confidence: float

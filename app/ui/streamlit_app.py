@@ -97,22 +97,30 @@ if page == "🤖 AI Chat Assistant":
             st.markdown(prompt)
 
         # Route and call API
-        # TODO SCRUM-16: Replace detect_intent() with POST /api/v1/chat orchestrator call
-        intent = detect_intent(prompt)
+        from app.ui.api_client import chat as chat_api
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                if intent == "review":
-                    result = summarize_reviews(api_url, query=prompt)
-                    if result["success"]:
-                        reply = format_review_message(result["data"])
+                result = chat_api(api_url, message=prompt, session_id=st.session_state.get("session_id"), max_results=5)
+                if result["success"]:
+                    data   = result["data"]
+                    intent = data.get("intent", "general")
+                    agent_resp = data.get("response", {})
+                    if intent == "review":
+                        reply = format_review_message(agent_resp)
+                    elif intent in ("recommendation", "comparison"):
+                        reply = format_recommendation_message(agent_resp)
+                    elif intent == "price":
+                        best  = agent_resp.get("best_deal", "")
+                        rec   = agent_resp.get("recommendation", "")
+                        reply = f"🏆 **Best Deal:** {best}\n\n{rec}" if best else rec or "No comparison data."
+                    elif intent == "policy":
+                        answer  = agent_resp.get("answer", "")
+                        sources = ", ".join(f"_{s}_" for s in agent_resp.get("sources", []))
+                        reply   = f"{answer}\n\n📋 **Source:** {sources}" if sources else answer
                     else:
-                        reply = f"⚠️ {result['error']}"
+                        reply = agent_resp.get("answer", "I'm not sure how to help with that.")
                 else:
-                    result = get_recommendations(api_url, query=prompt, max_results=5)
-                    if result["success"]:
-                        reply = format_recommendation_message(result["data"])
-                    else:
-                        reply = f"⚠️ {result['error']}"
+                    reply = f"⚠️ {result['error']}"
             st.markdown(reply)
         st.session_state.messages.append({"role": "assistant", "content": reply})
 

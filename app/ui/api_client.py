@@ -157,3 +157,11 @@ def compare_prices(
     Returns {"success": bool, "data": PriceCompareResponse dict, "error": str | None}
     """
     return _post(f"{api_url}/api/v1/price/compare", {"query": query, "max_results": max_results})
+
+def chat(api_url: str, message: str, session_id: str | None = None,
+         max_results: int = 5) -> dict[str, Any]:
+    """Call POST /api/v1/chat."""
+    payload: dict = {"message": message, "max_results": max_results}
+    if session_id:
+        payload["session_id"] = session_id
+    return _post(f"{api_url}/api/v1/chat", payload)

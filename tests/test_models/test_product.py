@@ -128,3 +128,19 @@ def test_product_price_precision(db_session):
 
     assert product.price == Decimal("19.95")
     assert product.to_dict()["price"] == 19.95
+
+
+def test_product_to_dict_includes_image_url():
+    p = Product(
+        id="TEST001", name="Widget", price=9.99, category="gadgets",
+        image_url="https://picsum.photos/seed/42/400/300",
+    )
+    d = p.to_dict()
+    assert "image_url" in d
+    assert d["image_url"] == "https://picsum.photos/seed/42/400/300"
+
+
+def test_product_to_dict_image_url_none_when_unset():
+    p = Product(id="TEST002", name="Widget", price=9.99, category="gadgets")
+    d = p.to_dict()
+    assert d["image_url"] is None

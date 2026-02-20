@@ -17,6 +17,7 @@ class ProductIngestionSchema(BaseModel):
     category: str = Field(..., min_length=1, max_length=100)
     stock: Optional[int] = Field(None, ge=0)
     rating: Optional[float] = Field(None, ge=0.0, le=5.0)
+    image_url: Optional[str] = Field(None, max_length=500)
 
     @field_validator("price")
     @classmethod

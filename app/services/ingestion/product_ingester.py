@@ -57,6 +57,9 @@ class ProductIngester(DataIngestionPipeline[ProductIngestionSchema]):
         rating = row.get("rating")
         rating = float(rating) if pd.notna(rating) else None
 
+        image_url = row.get("image_url") or row.get("picture")
+        image_url = str(image_url).strip() if pd.notna(image_url) and image_url else None
+
         return ProductIngestionSchema(
             id=str(row.get("id", "")).strip(),
             name=str(row.get("name", "")).strip(),
@@ -66,6 +69,7 @@ class ProductIngester(DataIngestionPipeline[ProductIngestionSchema]):
             category=str(row.get("category", "General")).strip(),
             stock=stock,
             rating=rating,
+            image_url=image_url,
         )
 
     def _get_dedup_key(self, record: ProductIngestionSchema) -> str:
@@ -83,5 +87,6 @@ class ProductIngester(DataIngestionPipeline[ProductIngestionSchema]):
             category=record.category,
             stock=record.stock,
             rating=record.rating,
+            image_url=record.image_url,
         )
         self.db.add(product)

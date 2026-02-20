@@ -58,6 +58,7 @@ async def get_recommendations(
             category=r["category"],
             rating=r.get("rating"),
             stock=r.get("stock"),
+            image_url=r.get("image_url"),
             relevance_score=r["relevance_score"],
             reason=r["reason"],
         )

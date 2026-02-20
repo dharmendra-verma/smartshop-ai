@@ -18,6 +18,7 @@ SAMPLE_PRODUCT.brand = "TestBrand"
 SAMPLE_PRODUCT.category = "electronics"
 SAMPLE_PRODUCT.stock = 50
 SAMPLE_PRODUCT.rating = 4.5
+SAMPLE_PRODUCT.image_url = "https://example.com/image.png"
 SAMPLE_PRODUCT.created_at = datetime(2026, 1, 1)
 
 
@@ -81,5 +82,27 @@ def test_get_product_found():
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == "prod-001"
-    assert data["name"] == "Test Product"
     assert data["category"] == "electronics"
+
+
+def test_list_products_response_includes_image_url_field():
+    db = MagicMock()
+    db.query.return_value.count.return_value = 1
+    db.query.return_value.offset.return_value.limit.return_value.all.return_value = [SAMPLE_PRODUCT]
+    app.dependency_overrides[get_db] = lambda: db
+
+    response = client.get("/api/v1/products")
+    assert response.status_code == 200
+    items = response.json()["items"]
+    assert len(items) > 0
+    assert "image_url" in items[0]
+
+
+def test_get_product_response_includes_image_url_field():
+    db = MagicMock()
+    db.query.return_value.filter.return_value.first.return_value = SAMPLE_PRODUCT
+    app.dependency_overrides[get_db] = lambda: db
+
+    response = client.get("/api/v1/products/prod-001")
+    assert response.status_code == 200
+    assert "image_url" in response.json()

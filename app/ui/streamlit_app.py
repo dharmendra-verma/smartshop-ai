@@ -175,7 +175,7 @@ elif page == "🔍 Product Search & Recommendations":
         with col1:
             category = st.selectbox(
                 "Category",
-                ["All", "smartphones", "laptops", "headphones", "speakers", "tablets", "cameras"],
+                ["All", "Smartphone", "Laptop", "Headphone", "Speaker", "Tablet", "Camera", "Smart_Tv"],
             )
         with col2:
             brand = st.text_input("Brand (optional)", placeholder="e.g. Samsung, Apple")

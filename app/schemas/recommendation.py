@@ -29,6 +29,7 @@ class ProductRecommendation(BaseModel):
     category: str
     rating: Optional[float] = None
     stock: Optional[int] = None
+    image_url: Optional[str] = None
     relevance_score: float = Field(ge=0.0, le=1.0)
     reason: str = Field(description="Why this product was recommended")
 

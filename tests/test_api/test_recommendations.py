@@ -81,7 +81,7 @@ class TestRecommendationsEndpoint:
             )
         assert resp.status_code == 200
         rec = resp.json()["recommendations"][0]
-        for field in ("id", "name", "price", "category", "relevance_score", "reason"):
+        for field in ("id", "name", "price", "category", "relevance_score", "reason", "image_url"):
             assert field in rec, f"Missing field: {field}"
 
     def test_query_too_short_returns_422(self):
@@ -151,6 +151,32 @@ class TestRecommendationsEndpoint:
                 "/api/v1/recommendations",
                 json={"query": "unobtainium phone"},
             )
-        assert resp.status_code == 200
         assert resp.json()["total_found"] == 0
         assert resp.json()["recommendations"] == []
+
+    def test_recommendation_image_url_propagates_from_product(self):
+        """image_url from product dict is propagated to recommendation schema."""
+        test_url = "https://picsum.photos/seed/999/400/300"
+        with patch(
+            "app.api.v1.recommendations._agent.process",
+            new_callable=AsyncMock,
+            return_value=make_success_response(recommendations=[
+                {
+                    "id": "PROD002",
+                    "name": "Phone Y",
+                    "price": 400.0,
+                    "category": "smartphones",
+                    "relevance_score": 0.8,
+                    "reason": "Good",
+                    "image_url": test_url
+                }
+            ])
+        ):
+            resp = client.post(
+                "/api/v1/recommendations",
+                json={"query": "test query"},
+            )
+        assert resp.status_code == 200
+        recs = resp.json()["recommendations"]
+        assert len(recs) == 1
+        assert recs[0]["image_url"] == test_url

@@ -19,6 +19,7 @@ class Product(Base):
     category = Column(String(100), nullable=False, index=True)
     stock = Column(Integer, nullable=True, default=0)
     rating = Column(Float, nullable=True)
+    image_url = Column(String(500), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
@@ -41,6 +42,7 @@ class Product(Base):
             "category": self.category,
             "stock": self.stock,
             "rating": self.rating,
+            "image_url": self.image_url,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

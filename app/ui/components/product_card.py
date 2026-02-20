@@ -65,6 +65,10 @@ def render_product_card(product: dict) -> None:
             score = product["relevance_score"]
             st.progress(score, text=f"Relevance: {score:.0%}")
 
+        if product.get("description"):
+            with st.expander("Show Description"):
+                st.write(product.get("description"))
+
 
 def render_product_grid(products: list[dict], cols: int = 3) -> None:
     """Render a grid of product cards with an empty state if none found."""

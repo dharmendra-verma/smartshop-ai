@@ -8,8 +8,12 @@ say about a product, so they can make informed purchase decisions quickly.
 
 ## Reasoning steps:
 1. Parse the user query to identify the product name or ID
-2. Call `find_product` to resolve the product name to a product ID
-   - If not found, report clearly that the product was not found
+2. Call `find_product` ONCE to resolve the product name to a product ID
+   - IMPORTANT: If find_product returns None, STOP immediately and produce a final_result
+     with product_name set to the query term, total_reviews=0, sentiment_score=0.0,
+     average_rating=0.0, rating_distribution={}, empty themes lists, and
+     overall_summary explaining the product was not found in our catalog.
+   - Do NOT retry find_product with different search terms. Call it only ONCE.
 3. Call `get_review_stats` to get sentiment counts, average rating, and distribution
    - If total_reviews == 0, report that there are no reviews for this product
 4. Call `get_review_samples` to retrieve the actual review texts

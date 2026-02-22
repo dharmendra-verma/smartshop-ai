@@ -5,6 +5,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.usage import UsageLimits
 from app.core.config import get_settings
 from app.schemas.chat import IntentType
 
@@ -48,7 +49,7 @@ class IntentClassifier:
 
     async def classify(self, query: str) -> _IntentResult:
         try:
-            result = await self._agent.run(query, deps=_ClassifierDeps())
+            result = await self._agent.run(query, deps=_ClassifierDeps(), usage_limits=UsageLimits(request_limit=5))
             logger.info("Intent: '%s' → %s (%.2f)", query[:60], result.output.intent, result.output.confidence)
             return result.output
         except Exception as exc:

@@ -58,7 +58,7 @@ async def test_policy_dependencies_constructed(mock_deps, mock_vs):
     from app.agents.policy.agent import PolicyDependencies
     agent = PolicyAgent()
     captured = []
-    async def capture(query, deps):
+    async def capture(query, deps, **kwargs):
         captured.append(deps)
         r = MagicMock()
         r.output.answer = "30 days."

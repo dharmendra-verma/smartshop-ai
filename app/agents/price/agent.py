@@ -6,6 +6,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.usage import UsageLimits
 
 from app.agents.base import BaseAgent, AgentResponse
 from app.agents.dependencies import AgentDependencies
@@ -83,7 +84,7 @@ class PriceComparisonAgent(BaseAgent):
             )
 
         try:
-            result = await self._agent.run(query, deps=deps)
+            result = await self._agent.run(query, deps=deps, usage_limits=UsageLimits(request_limit=15))
             output: _ComparisonOutput = result.output
 
             return AgentResponse(

@@ -49,7 +49,7 @@ with st.sidebar:
     st.divider()
     st.subheader("⚙️ Settings")
     # Read from env var (Docker) or allow manual override
-    default_url = os.getenv("API_URL", "http://localhost:8080")
+    default_url = os.getenv("API_URL", "http://localhost:8000")
     api_url = st.text_input("API URL", default_url)
 
     # Backend status indicator
@@ -65,8 +65,8 @@ with st.sidebar:
     
     st.divider()
     if st.button("🗑️ Clear Conversation", use_container_width=True):
-        from app.ui.api_client import _post
-        _post(f"{api_url}/api/v1/chat/session/{st.session_state['session_id']}", {})
+        from app.ui.api_client import _delete
+        _delete(f"{api_url}/api/v1/chat/session/{st.session_state['session_id']}")
         st.session_state["messages"] = [
             {
                 "role": "assistant",

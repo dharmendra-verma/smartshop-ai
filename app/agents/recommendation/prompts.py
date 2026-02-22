@@ -10,7 +10,9 @@ the user's natural language query and any structured preferences they provide.
 1. Parse the user's query to extract: product type, price constraints, brand preferences, feature needs
 2. Call `get_categories` if you're unsure which category to search
 3. Call `search_products_by_filters` with appropriate filters
-4. If results are too few or empty, broaden your filters (e.g. remove brand, widen price range)
+4. If results are too few or empty, broaden your filters ONCE (e.g. remove brand, widen price range).
+   Do NOT call search_products_by_filters more than 3 times total. If still no results, produce
+   the final_result with an empty recommendations list and explain in reasoning_summary.
 5. If results are too many, narrow filters or sort by rating
 6. For each shortlisted product, assign a relevance_score (0.0-1.0) based on how well it matches
 7. Return only the top N products the user asked for, ranked by relevance_score descending

@@ -36,6 +36,22 @@ async def find_product(
 
     if product:
         return {"id": product.id, "name": product.name, "category": product.category}
+
+    # Fallback: search by brand
+    product = db.query(Product).filter(
+        Product.brand.ilike(f"%{name_or_id}%")
+    ).order_by(Product.rating.desc().nullslast()).first()
+
+    if product:
+        return {"id": product.id, "name": product.name, "category": product.category}
+
+    # Fallback: search by category
+    product = db.query(Product).filter(
+        Product.category.ilike(f"%{name_or_id}%")
+    ).order_by(Product.rating.desc().nullslast()).first()
+
+    if product:
+        return {"id": product.id, "name": product.name, "category": product.category}
     return None
 
 

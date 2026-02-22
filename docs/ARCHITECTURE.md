@@ -139,6 +139,8 @@ graph LR
 4. **Observe** - Analyze the results
 5. **Repeat** - Continue until task is complete
 
+**Loop Prevention:** All agents enforce `UsageLimits(request_limit=15)` via pydantic-ai to cap LLM round-trips. Agent prompts explicitly instruct tools to be called once per search term — if a product is not found, agents produce a final result immediately rather than retrying with variations.
+
 ---
 
 ## Data Flow
@@ -284,10 +286,10 @@ graph LR
 #### Review Summarization Agent
 - **Data Sources**: Customer reviews database
 - **Process**:
-  1. Retrieve reviews for target product
-  2. Pre-computed sentiment labels lookup (fast path)
-  3. GPT-based theme extraction (top positive/negative)
-  4. Calculate overall sentiment score
+  1. Find product via `find_product` tool (searches by name, brand, and category)
+  2. Retrieve review stats (sentiment counts, ratings) via `get_review_stats`
+  3. Fetch review text samples via `get_review_samples`
+  4. GPT-based theme extraction (top positive/negative)
 - **Output**: Concise summary with confidence scores
 
 #### FAQ & Policy Agent
@@ -336,7 +338,7 @@ graph LR
 | | ASGI Server | Uvicorn | 0.27+ |
 | | Validation | Pydantic | 2.5+ |
 | **AI/ML** | LLM | OpenAI GPT-4o-mini | Latest |
-| | Agent Framework | Pydantic AI | 0.0.13+ |
+| | Agent Framework | Pydantic AI | 1.61.0 |
 | | Embeddings | OpenAI Embeddings | text-embedding-3-small |
 | **Data** | Database | PostgreSQL | 15+ |
 | | ORM | SQLAlchemy | 2.0+ |

@@ -80,6 +80,40 @@ def _post(url: str, payload: dict) -> dict[str, Any]:
     return {"success": False, "data": None, "error": "Cannot connect to backend after retries. Is FastAPI running?"}
 
 
+def _delete(url: str) -> dict[str, Any]:
+    """Internal DELETE helper with retry on transient failures."""
+    last_error = None
+    for attempt in range(_MAX_RETRIES):
+        try:
+            r = requests.delete(url, timeout=DEFAULT_TIMEOUT)
+            if r.status_code in _RETRYABLE_STATUS and attempt < _MAX_RETRIES - 1:
+                time.sleep(_RETRY_DELAYS[attempt])
+                continue
+            r.raise_for_status()
+            # 204 No Content returns no body
+            if r.status_code == 204:
+                return {"success": True, "data": None, "error": None}
+            return {"success": True, "data": r.json(), "error": None}
+        except requests.exceptions.ConnectionError as e:
+            last_error = e
+            if attempt < _MAX_RETRIES - 1:
+                time.sleep(_RETRY_DELAYS[attempt])
+        except requests.exceptions.Timeout as e:
+            last_error = e
+            if attempt < _MAX_RETRIES - 1:
+                time.sleep(_RETRY_DELAYS[attempt])
+        except requests.exceptions.HTTPError as e:
+            detail = e.response.json().get("detail", str(e)) if e.response else str(e)
+            return {"success": False, "data": None, "error": f"API error: {detail}"}
+        except Exception as e:
+            logger.error("Unexpected error in DELETE %s: %s", url, e)
+            return {"success": False, "data": None, "error": f"Unexpected error: {str(e)}"}
+
+    if isinstance(last_error, requests.exceptions.Timeout):
+        return {"success": False, "data": None, "error": "Request timed out after retries. Please try again."}
+    return {"success": False, "data": None, "error": "Cannot connect to backend after retries. Is FastAPI running?"}
+
+
 # -- Public API ----------------------------------------------------------------
 
 def health_check(api_url: str) -> bool:

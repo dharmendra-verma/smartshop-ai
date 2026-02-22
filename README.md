@@ -104,71 +104,46 @@ Access the application:
 ```
 smartshop-ai/
 ├── app/
-│   ├── agents/                 # AI agent implementations
-│   │   ├── __init__.py
-│   │   ├── base.py            # Base agent class
-│   │   ├── orchestrator.py    # Intent router
-│   │   ├── recommendation.py  # Product recommendation agent
-│   │   ├── review.py          # Review summarization agent
-│   │   ├── price.py           # Price comparison agent
-│   │   └── policy.py          # FAQ/Policy agent (RAG)
-│   ├── api/                   # FastAPI routes
-│   │   ├── __init__.py
-│   │   ├── health.py
-│   │   ├── products.py
-│   │   ├── chat.py
-│   │   └── agents.py
-│   ├── core/                  # Core utilities
-│   │   ├── __init__.py
-│   │   ├── config.py          # Configuration management
-│   │   ├── database.py        # Database connection
-│   │   └── cache.py           # Redis cache utilities
-│   ├── models/                # Database models
-│   │   ├── __init__.py
-│   │   ├── product.py
-│   │   ├── review.py
-│   │   └── policy.py
-│   ├── schemas/               # Pydantic schemas
-│   │   ├── __init__.py
-│   │   ├── product.py
-│   │   ├── agent.py
-│   │   └── response.py
-│   ├── services/              # Business logic
-│   │   ├── __init__.py
-│   │   ├── product_service.py
-│   │   ├── review_service.py
-│   │   └── cache_service.py
-│   ├── ui/                    # Frontend applications
+│   ├── agents/                 # pydantic-ai agents
+│   │   ├── base.py            # BaseAgent + AgentResponse
+│   │   ├── dependencies.py    # AgentDependencies(db, settings)
+│   │   ├── recommendation/    # Product recommendation agent
+│   │   ├── review/            # Review summarization agent
+│   │   ├── price/             # Price comparison agent
+│   │   ├── policy/            # FAQ/Policy agent (FAISS RAG)
+│   │   └── orchestrator/      # Intent classifier, circuit breaker, general agent
+│   ├── api/
+│   │   ├── health.py          # GET /health
+│   │   └── v1/                # Versioned API routers
+│   │       ├── products.py    # GET /api/v1/products
+│   │       ├── recommendations.py
+│   │       ├── reviews.py
+│   │       ├── price.py
+│   │       ├── policy.py
+│   │       └── chat.py        # POST /api/v1/chat (unified orchestrator)
+│   ├── core/                  # config, database, cache, logging
+│   ├── models/                # SQLAlchemy models (Product, Review, Policy)
+│   ├── schemas/               # Pydantic request/response schemas
+│   ├── services/
+│   │   ├── pricing/           # MockPricingService + PriceCache
+│   │   ├── session/           # SessionManager + SessionStore
+│   │   └── ingestion/         # CSV data ingesters
+│   ├── middleware/             # Error handler, request logging
+│   ├── ui/
 │   │   ├── streamlit_app.py   # Main Streamlit interface
-│   │   └── components/        # Reusable UI components
-│   ├── utils/                 # Helper utilities
-│   │   ├── __init__.py
-│   │   ├── logger.py
-│   │   └── embeddings.py
+│   │   ├── api_client.py      # HTTP client for FastAPI backend
+│   │   ├── components/        # product_card, review_display, chat_helpers, star_rating
+│   │   └── design_tokens.py   # CSS and styling
 │   └── main.py                # FastAPI application entry
-├── data/                      # Data storage
-│   ├── raw/                   # Raw datasets
-│   ├── processed/             # Processed data
-│   └── embeddings/            # Vector embeddings
-├── scripts/                   # Utility scripts
-│   ├── init_db.py            # Database initialization
-│   ├── load_sample_data.py   # Sample data loader
-│   └── ingest_data.py        # Data ingestion pipeline
-├── tests/                     # Test suite
+├── alembic/                   # Database migrations
+├── data/                      # CSV datasets
+├── tests/                     # 286+ pytest tests
 │   ├── test_agents/
 │   ├── test_api/
 │   └── test_services/
-├── docs/                      # Documentation
-│   ├── architecture.md
-│   ├── agents.md
-│   └── deployment.md
-├── .env.example              # Environment template
-├── .gitignore
-├── docker-compose.yml
-├── Dockerfile
-├── requirements.txt
-├── README.md
-└── LICENSE
+├── docs/                      # Architecture & status docs
+├── plans/                     # Story plans (plan/, inprogress/, completed/)
+└── requirements.txt
 ```
 
 ## 🛠️ Technology Stack
@@ -176,7 +151,7 @@ smartshop-ai/
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
 | **AI & NLP** | OpenAI GPT-4o-mini | Language understanding & generation |
-| **Agent Framework** | Pydantic AI | Multi-agent orchestration |
+| **Agent Framework** | Pydantic AI 1.61.0 | Multi-agent orchestration |
 | **Backend API** | FastAPI | Async REST API with auto-docs |
 | **Frontend** | Streamlit | Interactive chat interface |
 | **Database** | PostgreSQL | Relational data storage |
@@ -209,25 +184,28 @@ pytest tests/test_agents/test_recommendation.py
 
 ## 🗺️ Roadmap
 
-### Phase 1: Foundation (Week 1) ✅
+### Phase 1: Foundation ✅
 - Database schema & data pipeline
 - FastAPI backend scaffolding
 - Product catalog loaded
 
-### Phase 2: Core Agents (Week 2) 🚧
+### Phase 2: Core Agents ✅
 - Product Recommendation Agent
 - Review Summarization Agent
 - Basic Streamlit UI
+- E2E integration
 
-### Phase 3: Advanced Agents (Week 3)
+### Phase 3: Advanced Agents ✅
 - Price Comparison Agent
-- FAQ/Policy Agent with RAG
-- Multi-agent orchestration
+- FAQ/Policy Agent with RAG (FAISS)
+- Multi-agent orchestration with intent router
+- Session memory (Redis/TTLCache)
 
-### Phase 4: Polish & Demo (Week 4)
-- UI/UX refinement
-- Performance optimization
-- Documentation & demo prep
+### Phase 4: Polish ✅
+- UI/UX refinement & visual polish
+- Product images
+- Agent loop prevention (UsageLimits)
+- 286+ tests
 
 ## 🤝 Contributing
 

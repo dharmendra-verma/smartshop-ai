@@ -4,6 +4,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.usage import UsageLimits
 from app.agents.base import BaseAgent, AgentResponse
 from app.core.config import get_settings
 
@@ -26,7 +27,7 @@ class GeneralResponseAgent(BaseAgent):
 
     async def process(self, query: str, context: dict[str, Any]) -> AgentResponse:
         try:
-            result = await self._llm.run(query)
+            result = await self._llm.run(query, usage_limits=UsageLimits(request_limit=5))
             return AgentResponse(success=True,
                 data={"answer": result.output.answer, "agent": self.name})
         except Exception as exc:

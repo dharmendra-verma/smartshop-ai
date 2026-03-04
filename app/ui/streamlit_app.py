@@ -1,6 +1,13 @@
 """SmartShop AI — Streamlit User Interface."""
 
 import os
+import sys
+
+# Ensure project root is on sys.path so 'app' package is importable
+_project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
 import streamlit as st
 
 from app.ui.api_client import (
@@ -17,6 +24,7 @@ from app.ui.components.chat_helpers import (
     format_recommendation_message,
     format_review_message,
 )
+from app.ui.components.floating_chat import render_floating_chat_widget
 
 # -- Config --------------------------------------------------------------------
 st.set_page_config(
@@ -318,6 +326,9 @@ elif page == "💰 Pricing Insights":
                     st.dataframe(df, use_container_width=True)
             else:
                 st.error(result["error"])
+
+# -- Floating Chat Widget (available on all pages) ----------------------------
+render_floating_chat_widget(api_url)
 
 # -- Footer --------------------------------------------------------------------
 st.divider()

@@ -1,4 +1,4 @@
-"""Tests for POST /api/v1/reviews/summarize endpoint."""
+"""Tests for /api/v1/reviews endpoints."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -142,3 +142,148 @@ class TestReviewsSummarizeEndpoint:
             )
         assert resp.status_code == 200
         assert resp.json()["cached"] is True
+
+
+# ---------- GET /api/v1/reviews/{product_id} (SCRUM-61) ----------
+
+from datetime import date
+
+
+def _make_mock_product(product_id="PROD001", name="Test Phone", rating=4.2):
+    """Create a mock Product ORM object."""
+    p = MagicMock()
+    p.id = product_id
+    p.name = name
+    p.rating = rating
+    return p
+
+
+def _make_mock_review(review_id=1, product_id="PROD001", rating=4.0,
+                      text="Great!", sentiment="positive", review_date=None):
+    """Create a mock Review ORM object with to_dict()."""
+    r = MagicMock()
+    r.review_id = review_id
+    r.product_id = product_id
+    r.rating = rating
+    r.text = text
+    r.sentiment = sentiment
+    r.review_date = review_date or date(2025, 1, 15)
+    r.to_dict.return_value = {
+        "review_id": review_id,
+        "product_id": product_id,
+        "rating": rating,
+        "text": text,
+        "sentiment": sentiment,
+        "review_date": (review_date or date(2025, 1, 15)).isoformat(),
+    }
+    return r
+
+
+class TestListProductReviews:
+    """Tests for GET /api/v1/reviews/{product_id}."""
+
+    def test_returns_200_for_valid_product(self):
+        mock_db = MagicMock()
+        product = _make_mock_product()
+        mock_db.query.return_value.filter.return_value.first.return_value = product
+
+        review_query = mock_db.query.return_value.filter.return_value
+        review_query.order_by.return_value.count.return_value = 1
+        review_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
+            _make_mock_review()
+        ]
+
+        app.dependency_overrides[get_db] = lambda: mock_db
+        resp = client.get("/api/v1/reviews/PROD001")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["product_id"] == "PROD001"
+        assert data["product_name"] == "Test Phone"
+        assert len(data["reviews"]) == 1
+
+    def test_returns_404_for_unknown_product(self):
+        mock_db = MagicMock()
+        mock_db.query.return_value.filter.return_value.first.return_value = None
+
+        app.dependency_overrides[get_db] = lambda: mock_db
+        resp = client.get("/api/v1/reviews/UNKNOWN")
+        assert resp.status_code == 404
+        assert "UNKNOWN" in resp.json()["detail"]
+
+    def test_returns_empty_list_when_no_reviews(self):
+        mock_db = MagicMock()
+        product = _make_mock_product()
+        mock_db.query.return_value.filter.return_value.first.return_value = product
+
+        review_query = mock_db.query.return_value.filter.return_value
+        review_query.order_by.return_value.count.return_value = 0
+        review_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = []
+
+        app.dependency_overrides[get_db] = lambda: mock_db
+        resp = client.get("/api/v1/reviews/PROD001")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["reviews"] == []
+        assert data["total"] == 0
+
+    def test_pagination_limit_param(self):
+        mock_db = MagicMock()
+        product = _make_mock_product()
+        mock_db.query.return_value.filter.return_value.first.return_value = product
+
+        review_query = mock_db.query.return_value.filter.return_value
+        review_query.order_by.return_value.count.return_value = 0
+        review_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = []
+
+        app.dependency_overrides[get_db] = lambda: mock_db
+        resp = client.get("/api/v1/reviews/PROD001?limit=5")
+        assert resp.status_code == 200
+        assert resp.json()["limit"] == 5
+
+    def test_pagination_offset_param(self):
+        mock_db = MagicMock()
+        product = _make_mock_product()
+        mock_db.query.return_value.filter.return_value.first.return_value = product
+
+        review_query = mock_db.query.return_value.filter.return_value
+        review_query.order_by.return_value.count.return_value = 0
+        review_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = []
+
+        app.dependency_overrides[get_db] = lambda: mock_db
+        resp = client.get("/api/v1/reviews/PROD001?offset=10")
+        assert resp.status_code == 200
+        assert resp.json()["offset"] == 10
+
+    def test_response_has_total_and_product_name(self):
+        mock_db = MagicMock()
+        product = _make_mock_product(name="Super Gadget")
+        mock_db.query.return_value.filter.return_value.first.return_value = product
+
+        review_query = mock_db.query.return_value.filter.return_value
+        review_query.order_by.return_value.count.return_value = 42
+        review_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = []
+
+        app.dependency_overrides[get_db] = lambda: mock_db
+        resp = client.get("/api/v1/reviews/PROD001")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["total"] == 42
+        assert data["product_name"] == "Super Gadget"
+
+    def test_response_includes_average_rating(self):
+        mock_db = MagicMock()
+        product = _make_mock_product(rating=3.8)
+        mock_db.query.return_value.filter.return_value.first.return_value = product
+
+        review_query = mock_db.query.return_value.filter.return_value
+        review_query.order_by.return_value.count.return_value = 0
+        review_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = []
+
+        app.dependency_overrides[get_db] = lambda: mock_db
+        resp = client.get("/api/v1/reviews/PROD001")
+        assert resp.status_code == 200
+        assert resp.json()["average_rating"] == 3.8
+
+    def test_limit_validation_rejects_over_50(self):
+        resp = client.get("/api/v1/reviews/PROD001?limit=100")
+        assert resp.status_code == 422

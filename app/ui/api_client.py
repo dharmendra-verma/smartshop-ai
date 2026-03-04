@@ -192,6 +192,22 @@ def compare_prices(
     """
     return _post(f"{api_url}/api/v1/price/compare", {"query": query, "max_results": max_results})
 
+def get_product_reviews(
+    api_url: str,
+    product_id: str,
+    limit: int = 10,
+    offset: int = 0,
+) -> dict[str, Any]:
+    """
+    Call GET /api/v1/reviews/{product_id}.
+    Returns {"success": bool, "data": ReviewListResponse dict, "error": str | None}
+    """
+    return _get(
+        f"{api_url}/api/v1/reviews/{product_id}",
+        params={"limit": limit, "offset": offset},
+    )
+
+
 def chat(api_url: str, message: str, session_id: str | None = None,
          max_results: int = 5) -> dict[str, Any]:
     """Call POST /api/v1/chat."""

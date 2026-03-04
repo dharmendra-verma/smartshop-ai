@@ -1,17 +1,21 @@
-"""Review Summarization API endpoint — v1."""
+"""Review API endpoints — v1."""
 
 import logging
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.agents.dependencies import AgentDependencies
 from app.agents.review import ReviewSummarizationAgent
+from app.models.product import Product
+from app.models.review import Review
 from app.schemas.review import (
     ReviewSummarizationRequest,
     ReviewSummarizationResponse,
     SentimentTheme,
     RatingDistribution,
+    ReviewItem,
+    ReviewListResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -57,4 +61,35 @@ async def summarize_reviews(
         overall_summary=data["overall_summary"],
         cached=data.get("cached", False),
         agent=data.get("agent", "review-summarization-agent"),
+    )
+
+
+@router.get("/{product_id}", response_model=ReviewListResponse)
+def list_product_reviews(
+    product_id: str,
+    limit: int = Query(10, ge=1, le=50),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    """List raw reviews for a product, newest first."""
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail=f"Product '{product_id}' not found")
+
+    query = (
+        db.query(Review)
+        .filter(Review.product_id == product_id)
+        .order_by(Review.review_date.desc().nulls_last(), Review.review_id.desc())
+    )
+    total = query.count()
+    reviews = query.offset(offset).limit(limit).all()
+
+    return ReviewListResponse(
+        product_id=product_id,
+        product_name=product.name,
+        average_rating=product.rating,
+        reviews=[ReviewItem(**r.to_dict()) for r in reviews],
+        total=total,
+        limit=limit,
+        offset=offset,
     )

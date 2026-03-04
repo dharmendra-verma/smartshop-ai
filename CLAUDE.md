@@ -18,14 +18,15 @@ Three user tasks — determine which one from the user's message:
 You are expert planner
 1. Query Jira for stories with status **In Progress** (`project = SCRUM AND status = "In Progress"`)
 2. If none → notify user and stop (never move a story to In Progress yourself)
-3. Fetch full story details from Jira
-4. Explore the codebase to understand the current state
-5. Create `plans/plan/STORY-ID.md` with:
+3. **GATE CHECK**: Confirm the story's Jira status is exactly `"In Progress"` before proceeding — if a user names a specific story ID, fetch it and verify its status first; if it is NOT `"In Progress"`, **stop and inform the user** — do NOT create a plan for it
+4. Fetch full story details from Jira
+5. Explore the codebase to understand the current state
+6. Create `plans/plan/STORY-ID.md` with:
    - Story ID + title, acceptance criteria
    - Technical approach, file map, code snippets
    - Test requirements + expected new test count
    - Dependencies on prior stories
-6. **Automatically** update `CLAUDE.md` In-Progress Plans section with the new plan entry — do NOT wait for the user to ask
+7. **Automatically** update `CLAUDE.md` In-Progress Plans section with the new plan entry — do NOT wait for the user to ask
 
 ### Task 2 — "A story is completed, wrap it up"
 You are expert planner 
@@ -54,6 +55,8 @@ Plan and start working in below sequence and with given instruciton
 
 ### Rules
 - Never move a story to In Progress yourself in Jira
+- **CRITICAL: Only plan stories that have Jira status `"In Progress"` — always verify status via Jira API before creating any plan file, regardless of what the user asks; if the story is not In Progress, stop and tell the user**
+- **CRITICAL: When a user asks to create a NEW Jira story, create it in Jira first, then inform the user to move it to In Progress themselves before planning begins — never auto-plan a newly created story**
 - Plans go in `plans/plan/` — Developer moves them to `plans/completed/` on implementation
 - Windows filesystem: cannot `rm` files — truncate with `echo "" > file` instead
 - After wrapping up, always update this CLAUDE.md (test counts, completed stories, in-progress plans)
@@ -73,6 +76,7 @@ Plan and start working in below sequence and with given instruciton
 | SCRUM-42 | 307 |
 | SCRUM-43 | 312 |
 | SCRUM-19 | 341 |
+| SCRUM-61 | 362 |
 
 ## Architecture
 ```
@@ -93,7 +97,7 @@ app/
   ui/
     streamlit_app.py
     api_client.py
-    components/    # product_card, review_display, chat_helpers, star_rating, floating_chat
+    components/    # product_card, review_display, review_panel, chat_helpers, star_rating, floating_chat
     design_tokens.py
   core/            # config, database, cache (RedisCache, TTLCache), exceptions, query_cache, alerting
   middleware/       # error_handler, request_id, logging_middleware
@@ -124,7 +128,7 @@ app/
 | GeneralResponseAgent | (fallback via orchestrator) | general |
 
 ## Completed Stories
-SCRUM-8 (Load Product Catalog) → SCRUM-9 (FastAPI scaffold) → SCRUM-10 (RecommendationAgent) → SCRUM-11 (ReviewAgent) → SCRUM-12 (Streamlit UI) → SCRUM-13 (E2E integration) → SCRUM-14 (PriceAgent) → SCRUM-15 (PolicyAgent/RAG) → SCRUM-16 (Orchestrator/Intent Router) → SCRUM-17 (Session Memory) → SCRUM-18 (UI Polish) → SCRUM-40 (Product Images) → SCRUM-41 (Floating Chat Widget) → SCRUM-42 (Compact Product Card) → SCRUM-43 (Infinite Load) → SCRUM-19 (Error Handling & Resilience)
+SCRUM-8 (Load Product Catalog) → SCRUM-9 (FastAPI scaffold) → SCRUM-10 (RecommendationAgent) → SCRUM-11 (ReviewAgent) → SCRUM-12 (Streamlit UI) → SCRUM-13 (E2E integration) → SCRUM-14 (PriceAgent) → SCRUM-15 (PolicyAgent/RAG) → SCRUM-16 (Orchestrator/Intent Router) → SCRUM-17 (Session Memory) → SCRUM-18 (UI Polish) → SCRUM-40 (Product Images) → SCRUM-41 (Floating Chat Widget) → SCRUM-42 (Compact Product Card) → SCRUM-43 (Infinite Load) → SCRUM-19 (Error Handling & Resilience) → SCRUM-61 (Inline Reviews Panel)
 
 ## In-Progress Plans
 - `plans/plan/SCRUM-20.md` — Performance Optimization (GZip, LLM cache, DB engine singleton, indexes, metrics)

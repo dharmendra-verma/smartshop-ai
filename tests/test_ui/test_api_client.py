@@ -9,6 +9,7 @@ from app.ui.api_client import (
     get_recommendations,
     summarize_reviews,
     search_products,
+    get_product_reviews,
 )
 
 
@@ -140,6 +141,30 @@ class TestSearchProducts:
             search_products("http://x", brand="Samsung")
             params = mock_get.call_args.kwargs.get("params") or {}
             assert params["brand"] == "Samsung"
+
+
+class TestGetProductReviews:
+    def test_calls_correct_url(self):
+        with patch("app.ui.api_client.requests.get") as mock_get:
+            mock_get.return_value = make_mock_response({})
+            get_product_reviews("http://localhost:8000", "PROD001")
+            call_url = mock_get.call_args[0][0]
+            assert call_url == "http://localhost:8000/api/v1/reviews/PROD001"
+
+    def test_passes_limit_and_offset(self):
+        with patch("app.ui.api_client.requests.get") as mock_get:
+            mock_get.return_value = make_mock_response({})
+            get_product_reviews("http://x", "P1", limit=5, offset=20)
+            params = mock_get.call_args.kwargs.get("params") or {}
+            assert params["limit"] == 5
+            assert params["offset"] == 20
+
+    def test_returns_error_dict_on_failure(self):
+        with patch("app.ui.api_client.requests.get") as mock_get:
+            mock_get.side_effect = requests.exceptions.ConnectionError
+            result = get_product_reviews("http://x", "P1")
+        assert result["success"] is False
+        assert "connect" in result["error"].lower()
 
 
 class TestChatHelpers:

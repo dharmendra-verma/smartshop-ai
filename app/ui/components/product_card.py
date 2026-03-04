@@ -12,10 +12,56 @@ def _product_image_url(product: dict) -> str:
     return product.get("image_url") or PLACEHOLDER_IMG
 
 
+def _build_card_html(product: dict) -> str:
+    """Build the inner HTML for a product card (everything below the image)."""
+    parts: list[str] = []
+
+    # Product name
+    name = product.get("name", "Unknown")
+    parts.append(f'<div class="card-name"><strong>{name}</strong></div>')
+
+    # Price badge + star rating
+    price = product.get("price")
+    price_html = (
+        f'<span class="price-badge">${float(price):.2f}</span>'
+        if price is not None
+        else '<span class="price-badge">N/A</span>'
+    )
+    stars_html = render_star_rating_html(
+        product.get("rating"),
+        label=name,
+        review_count=product.get("review_count"),
+    )
+    parts.append(f'<div class="card-row">{price_html} &nbsp; {stars_html}</div>')
+
+    # Brand + category
+    if product.get("brand"):
+        parts.append(
+            f'<div class="card-caption">Brand: {product["brand"]}'
+            f' · {product.get("category", "")}</div>'
+        )
+
+    # Stock indicator
+    stock = product.get("stock")
+    if stock is not None:
+        if stock > 10:
+            parts.append(f'<div class="card-row stock-badge-ok">✅ In Stock ({stock})</div>')
+        elif stock > 0:
+            parts.append(f'<div class="card-row stock-badge-low">⚠️ Low Stock ({stock})</div>')
+        else:
+            parts.append('<div class="card-row stock-badge-out">❌ Out of Stock</div>')
+
+    # Description
+    if product.get("description"):
+        parts.append(f'<p class="product-description">{product["description"]}</p>')
+
+    return "\n".join(parts)
+
+
 def render_product_card(product: dict) -> None:
     """Render a single product as a styled card — v2."""
     with st.container(border=True):
-        # Image
+        # Image — kept as separate st.markdown so Streamlit can handle <img>
         img_url = _product_image_url(product)
         st.markdown(
             f'<img src="{img_url}" class="product-image" '
@@ -23,45 +69,10 @@ def render_product_card(product: dict) -> None:
             unsafe_allow_html=True,
         )
 
-        st.markdown(f"**{product.get('name', 'Unknown')}**")
+        # All card details as a single HTML block — no extra Streamlit spacing
+        st.markdown(_build_card_html(product), unsafe_allow_html=True)
 
-        # Price badge + star rating side by side
-        price = product.get("price")
-        rating = product.get("rating")
-        price_html = (
-            f'<span class="price-badge">${float(price):.2f}</span>'
-            if price is not None
-            else '<span class="price-badge">N/A</span>'
-        )
-        stars_html = render_star_rating_html(
-            rating,
-            label=product.get("name"),
-            review_count=product.get("review_count"),
-        )
-        st.markdown(f"{price_html} &nbsp; {stars_html}", unsafe_allow_html=True)
-
-        if product.get("brand"):
-            st.caption(f"Brand: {product['brand']} · {product.get('category', '')}")
-
-        # Stock indicator
-        stock = product.get("stock")
-        if stock is not None:
-            if stock > 10:
-                st.markdown(
-                    f'<span class="stock-badge-ok">✅ In Stock ({stock})</span>',
-                    unsafe_allow_html=True,
-                )
-            elif stock > 0:
-                st.markdown(
-                    f'<span class="stock-badge-low">⚠️ Low Stock ({stock})</span>',
-                    unsafe_allow_html=True,
-                )
-            else:
-                st.markdown(
-                    '<span class="stock-badge-out">❌ Out of Stock</span>',
-                    unsafe_allow_html=True,
-                )
-
+        # These use native Streamlit widgets so must stay separate
         if product.get("reason"):
             st.info(f"{product['reason']}")
 
@@ -69,11 +80,27 @@ def render_product_card(product: dict) -> None:
             score = product["relevance_score"]
             st.progress(score, text=f"Relevance: {score:.0%}")
 
-        if product.get("description"):
-            st.markdown(
-                f'<p class="product-description">{product["description"]}</p>',
-                unsafe_allow_html=True,
-            )
+        # Clickable reviews button (SCRUM-61)
+        review_count = product.get("review_count", 0)
+        product_id = product.get("id", "")
+        if review_count and review_count > 0:
+            is_selected = st.session_state.get("selected_review_product_id") == product_id
+            plural = "s" if review_count != 1 else ""
+            btn_label = f"{'Open' if not is_selected else 'Hide'} {review_count} review{plural}"
+            btn_style = "primary" if is_selected else "secondary"
+
+            def _toggle_reviews(pid=product_id, currently_selected=is_selected):
+                if currently_selected:
+                    st.session_state["selected_review_product_id"] = None
+                    st.session_state.pop(f"review_loaded_{pid}", None)
+                else:
+                    st.session_state["selected_review_product_id"] = pid
+                    st.session_state.pop(f"review_loaded_{pid}", None)
+
+            st.button(btn_label, key=f"show_reviews_{product_id}", type=btn_style,
+                      use_container_width=True, on_click=_toggle_reviews)
+        else:
+            st.caption("No reviews yet")
 
 
 def render_product_grid(products: list[dict], cols: int = 3) -> None:

@@ -69,3 +69,26 @@ class ReviewSummarizationResponse(BaseModel):
         description="True if result was served from cache",
     )
     agent: str = "review-summarization-agent"
+
+
+# --- SCRUM-61: Paginated raw reviews endpoint schemas ---
+
+class ReviewItem(BaseModel):
+    """Single review in a paginated list."""
+    review_id: int
+    product_id: str
+    rating: float
+    text: Optional[str] = None
+    sentiment: Optional[str] = None
+    review_date: Optional[str] = None
+
+
+class ReviewListResponse(BaseModel):
+    """GET /api/v1/reviews/{product_id} response."""
+    product_id: str
+    product_name: str
+    average_rating: Optional[float] = None
+    reviews: list[ReviewItem]
+    total: int
+    limit: int
+    offset: int

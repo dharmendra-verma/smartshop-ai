@@ -86,6 +86,8 @@ if page == "🔍 Product Search & Recommendations":
             ("search_total", 0),
             ("search_total_pages", 0),
             ("search_params", {}),
+            ("selected_review_product_id", None),
+            ("review_panel_offset", 0),
         ]:
             if key not in st.session_state:
                 st.session_state[key] = default
@@ -142,6 +144,20 @@ if page == "🔍 Product Search & Recommendations":
                 f'<strong>{total}</strong> products</p>',
                 unsafe_allow_html=True,
             )
+
+            # Inline review panel — rendered ABOVE the grid so it's visible (SCRUM-61)
+            selected_id = st.session_state.get("selected_review_product_id")
+            if selected_id:
+                selected_product = next(
+                    (p for p in products if p.get("id") == selected_id),
+                    None,
+                )
+                if selected_product:
+                    from app.ui.components.review_panel import render_review_panel
+                    render_review_panel(selected_product, api_url)
+                else:
+                    st.session_state["selected_review_product_id"] = None
+
             render_product_grid(products, cols=3)
 
             if cur_page < tot_pages:

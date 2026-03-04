@@ -57,6 +57,20 @@ def get_global_css() -> str:
     box-shadow: 0 4px 16px rgba(31,119,180,0.18);
     transform: translateY(-2px);
 }}
+/* ── Card inner rows (single HTML block, tight spacing) ──────── */
+.card-name {{
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+}}
+.card-row {{
+    margin: 2px 0;
+    line-height: 1.4;
+}}
+.card-caption {{
+    font-size: {FONT_SIZE_CAPTION};
+    color: #888;
+    margin: 2px 0;
+}}
 .product-image {{
     width: 100%;
     border-radius: {RADIUS_SM};
@@ -131,6 +145,18 @@ def get_global_css() -> str:
     color: #888;
     font-size: {FONT_SIZE_BODY};
 }}
+
+/* ── Inline Review Card (SCRUM-61) ───────────────────────────── */
+.review-card {{
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: {RADIUS_SM};
+    padding: 12px 16px;
+    margin-bottom: 8px;
+}}
+.sentiment-positive {{ color: {COLOR_SUCCESS}; font-weight: 600; }}
+.sentiment-negative {{ color: {COLOR_WARNING}; font-weight: 600; }}
+.sentiment-neutral  {{ color: #666; font-weight: 600; }}
 
 /* ── Accessibility: focus ring ────────────────────────────────── */
 button:focus-visible, a:focus-visible {{

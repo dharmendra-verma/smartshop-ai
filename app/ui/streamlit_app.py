@@ -178,7 +178,22 @@ elif page == "🔍 Product Search & Recommendations":
     tab_search, tab_recommend = st.tabs(["🔍 Filter Search", "🤖 AI Recommendations"])
 
     # Tab 1: Structured filter search
+    PRODUCTS_BATCH_SIZE = 24
+
+    def _init_search_state():
+        for key, default in [
+            ("search_products_list", []),
+            ("search_page", 0),
+            ("search_total", 0),
+            ("search_total_pages", 0),
+            ("search_params", {}),
+        ]:
+            if key not in st.session_state:
+                st.session_state[key] = default
+
     with tab_search:
+        _init_search_state()
+
         col1, col2 = st.columns(2)
         with col1:
             category = st.selectbox(
@@ -189,19 +204,68 @@ elif page == "🔍 Product Search & Recommendations":
             brand = st.text_input("Brand (optional)", placeholder="e.g. Samsung, Apple")
 
         if st.button("Search Products", type="primary"):
+            params = {
+                "category": category if category != "All" else None,
+                "brand": brand or None,
+            }
+            st.session_state["search_products_list"] = []
+            st.session_state["search_page"] = 0
+            st.session_state["search_total"] = 0
+            st.session_state["search_total_pages"] = 0
+            st.session_state["search_params"] = params
             with st.spinner("Searching..."):
                 result = search_products(
                     api_url,
-                    category=category if category != "All" else None,
-                    brand=brand or None,
-                    page_size=12,
+                    category=params["category"],
+                    brand=params["brand"],
+                    page=1,
+                    page_size=PRODUCTS_BATCH_SIZE,
                 )
             if result["success"]:
                 data = result["data"]
-                st.success(f"Found {data['total']} products (showing {len(data['items'])})")
-                render_product_grid(data["items"], cols=3)
+                st.session_state["search_products_list"] = data["items"]
+                st.session_state["search_page"] = 1
+                st.session_state["search_total"] = data["total"]
+                st.session_state["search_total_pages"] = data["pages"]
             else:
                 st.error(result["error"])
+
+        # Display accumulated results
+        products = st.session_state.get("search_products_list", [])
+        total = st.session_state.get("search_total", 0)
+        cur_page = st.session_state.get("search_page", 0)
+        tot_pages = st.session_state.get("search_total_pages", 0)
+
+        if products:
+            shown = len(products)
+            st.markdown(
+                f'<p class="product-count-header">Showing <strong>1–{shown}</strong> of '
+                f'<strong>{total}</strong> products</p>',
+                unsafe_allow_html=True,
+            )
+            render_product_grid(products, cols=3)
+
+            if cur_page < tot_pages:
+                if st.button("Load More Products", use_container_width=True):
+                    next_page = cur_page + 1
+                    params = st.session_state.get("search_params", {})
+                    with st.spinner("Loading more products..."):
+                        result = search_products(
+                            api_url,
+                            category=params.get("category"),
+                            brand=params.get("brand"),
+                            page=next_page,
+                            page_size=PRODUCTS_BATCH_SIZE,
+                        )
+                    if result["success"]:
+                        data = result["data"]
+                        st.session_state["search_products_list"].extend(data["items"])
+                        st.session_state["search_page"] = next_page
+                        st.rerun()
+                    else:
+                        st.error(result["error"])
+            elif cur_page > 0 and cur_page >= tot_pages:
+                st.success(f"All {total} products loaded.")
 
     # Tab 2: AI recommendation
     with tab_recommend:

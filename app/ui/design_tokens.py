@@ -117,6 +117,13 @@ def get_global_css() -> str:
     margin-top: {SPACE_XS};
 }}
 
+/* ── Product Count Header ─────────────────────────────────────── */
+.product-count-header {{
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 12px;
+}}
+
 /* ── Empty State ──────────────────────────────────────────────── */
 .empty-state {{
     text-align: center;

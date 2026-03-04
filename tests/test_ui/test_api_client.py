@@ -105,6 +105,42 @@ class TestSearchProducts:
             params = mock_get.call_args.kwargs.get("params") or {}
             assert "category" not in params
 
+    def test_default_page_is_1(self):
+        with patch("app.ui.api_client.requests.get") as mock_get:
+            mock_get.return_value = make_mock_response({})
+            search_products("http://x")
+            params = mock_get.call_args.kwargs.get("params") or {}
+            assert params["page"] == 1
+
+    def test_default_page_size_is_24(self):
+        with patch("app.ui.api_client.requests.get") as mock_get:
+            mock_get.return_value = make_mock_response({})
+            search_products("http://x")
+            params = mock_get.call_args.kwargs.get("params") or {}
+            assert params["page_size"] == 24
+
+    def test_passes_custom_page_param(self):
+        with patch("app.ui.api_client.requests.get") as mock_get:
+            mock_get.return_value = make_mock_response({})
+            search_products("http://x", page=3, page_size=12)
+            params = mock_get.call_args.kwargs.get("params") or {}
+            assert params["page"] == 3
+            assert params["page_size"] == 12
+
+    def test_passes_category_filter(self):
+        with patch("app.ui.api_client.requests.get") as mock_get:
+            mock_get.return_value = make_mock_response({})
+            search_products("http://x", category="Laptop")
+            params = mock_get.call_args.kwargs.get("params") or {}
+            assert params["category"] == "Laptop"
+
+    def test_passes_brand_filter(self):
+        with patch("app.ui.api_client.requests.get") as mock_get:
+            mock_get.return_value = make_mock_response({})
+            search_products("http://x", brand="Samsung")
+            params = mock_get.call_args.kwargs.get("params") or {}
+            assert params["brand"] == "Samsung"
+
 
 class TestChatHelpers:
     def test_review_intent_detected(self):

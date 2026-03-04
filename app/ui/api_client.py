@@ -168,7 +168,7 @@ def search_products(
     category: str | None = None,
     brand: str | None = None,
     page: int = 1,
-    page_size: int = 12,
+    page_size: int = 24,
 ) -> dict[str, Any]:
     """
     Call GET /api/v1/products with filters.

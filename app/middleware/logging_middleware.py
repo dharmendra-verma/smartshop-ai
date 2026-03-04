@@ -16,8 +16,10 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         latency_ms = (time.perf_counter() - start) * 1000
 
+        request_id = getattr(request.state, "request_id", "—")
         logger.info(
-            "%s %s → %d (%.1f ms)",
+            "[%s] %s %s → %d (%.1f ms)",
+            request_id,
             request.method,
             request.url.path,
             response.status_code,

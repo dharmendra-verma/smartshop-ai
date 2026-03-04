@@ -76,7 +76,7 @@ async def test_process_exception_handled(mock_deps):
     with patch.object(agent._agent, "run", side_effect=Exception("LLM timeout")):
         response = await agent.process("Compare phones", context={"deps": mock_deps})
     assert response.success is False
-    assert "Price comparison error" in response.error
+    assert "Service temporarily unavailable" in response.error
 
 
 def test_price_agent_name():

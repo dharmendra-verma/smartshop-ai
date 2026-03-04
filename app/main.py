@@ -12,6 +12,7 @@ from app.api.v1.price import router as price_router
 from app.api.v1.policy import router as policy_router
 from app.api.v1.chat import router as chat_router
 from app.middleware.error_handler import ErrorHandlerMiddleware
+from app.middleware.request_id import RequestIdMiddleware
 from app.middleware.logging_middleware import RequestLoggingMiddleware
 
 # Initialize logging first
@@ -28,8 +29,9 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# Middleware (order matters — error handler wraps everything, logger wraps inner app)
+# Middleware (order matters — outermost first: error→request_id→logger→CORS)
 app.add_middleware(ErrorHandlerMiddleware)
+app.add_middleware(RequestIdMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(
     CORSMiddleware,

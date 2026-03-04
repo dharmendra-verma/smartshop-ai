@@ -48,7 +48,7 @@ async def test_process_exception_handled(mock_deps, mock_vs):
     with patch.object(agent._agent, "run", side_effect=Exception("LLM failure")):
         resp = await agent.process("Warranty?", {"deps": mock_deps, "vector_store": mock_vs})
     assert resp.success is False
-    assert "Policy agent error" in resp.error
+    assert "Service temporarily unavailable" in resp.error
 
 def test_agent_name():
     assert PolicyAgent().name == "policy-agent"

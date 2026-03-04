@@ -99,7 +99,7 @@ class TestRecommendationAgentProcess:
             result = await agent.process("phones", context={"deps": deps})
 
         assert result.success is False
-        assert "LLM timeout" in result.error
+        assert "Service temporarily unavailable" in result.error
 
 
 class TestRecommendationTools:

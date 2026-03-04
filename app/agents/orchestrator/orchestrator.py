@@ -45,10 +45,20 @@ class Orchestrator:
             response = await agent.process(query, ctx)
             if breaker:
                 breaker.record_success() if response.success else breaker.record_failure()
+            # Cache successful responses for query-level fallback
+            if response.success:
+                from app.core.query_cache import cache_response
+                cache_response(agent_key, query, response.data)
             return response, intent_result
         except Exception as exc:
             logger.error("Orchestrator: '%s' raised: %s", agent_key, exc)
             if breaker: breaker.record_failure()
+            # Try query-level cache before falling back to general agent
+            from app.core.query_cache import get_cached_response
+            cached = get_cached_response(agent_key, query)
+            if cached:
+                logger.info("Orchestrator: returning cached response for '%s'", agent_key)
+                return AgentResponse(success=True, data=cached), intent_result
             fallback = self._registry.get("general")
             if fallback:
                 return await fallback.process(query, context), intent_result

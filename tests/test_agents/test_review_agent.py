@@ -207,7 +207,7 @@ class TestReviewAgentProcess:
             )
 
         assert result.success is False
-        assert "API error" in result.error
+        assert "Service temporarily unavailable" in result.error
 
     @pytest.mark.asyncio
     async def test_cache_hit(self):

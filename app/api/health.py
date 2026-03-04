@@ -17,6 +17,13 @@ async def health_check():
     }
 
 
+@router.get("/health/alerts")
+async def health_alerts():
+    """Return current failure counts within the alert window per component."""
+    from app.core.alerting import get_alert_status
+    return {"alerts": get_alert_status()}
+
+
 @router.get("/")
 async def root():
     """Root endpoint."""

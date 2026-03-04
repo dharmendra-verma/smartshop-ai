@@ -79,6 +79,11 @@ class RecommendationAgent(BaseAgent):
                 error="AgentDependencies not provided in context['deps']",
             )
 
+        from app.core.llm_cache import get_cached_llm_response, set_cached_llm_response
+        cached = get_cached_llm_response(self.name, query)
+        if cached:
+            return cached
+
         max_results: int = context.get("max_results", 5)
         structured_hints = context.get("structured_hints", {})
         enriched_query = _build_enriched_query(query, structured_hints, max_results)
@@ -89,7 +94,7 @@ class RecommendationAgent(BaseAgent):
 
             recommendations = _hydrate_recommendations(output, deps)
 
-            return AgentResponse(
+            response = AgentResponse(
                 success=True,
                 data={
                     "query": query,
@@ -102,6 +107,8 @@ class RecommendationAgent(BaseAgent):
                     "model": str(self._agent.model),
                 },
             )
+            set_cached_llm_response(self.name, query, response)
+            return response
         except Exception as exc:
             from app.core.exceptions import AgentRateLimitError, AgentTimeoutError
             from app.core.alerting import record_failure

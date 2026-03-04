@@ -310,15 +310,18 @@ graph LR
   reviews (id, product_id, rating, review_text, sentiment, timestamp)
   policies (id, category, question, answer, effective_date)
   ```
-- **Indexes**: On frequently queried columns (category, price, brand, product_id)
-- **Connection Pooling**: Max 20 connections with overflow
+- **Indexes**: On frequently queried columns (category, price, brand, rating, stock, product_id, review rating)
+- **Connection Pooling**: Singleton engine with max 20 connections and overflow
+- **Engine Singleton**: `get_engine()` and `get_session_factory()` use module-level singletons to avoid per-request overhead
 
 #### Redis Cache
 - **Use Cases**:
   - Query result caching (1-hour TTL)
   - Session storage (30-minute TTL)
+  - LLM response caching (24-hour TTL, key prefix `llm:`)
   - Rate limiting counters
   - Frequent product lookups (24-hour TTL)
+- **Dual Backend**: Redis primary → in-memory TTLCache fallback (all cache singletons)
 - **Eviction Policy**: LRU (Least Recently Used)
 
 #### FAISS Vector Store
@@ -418,9 +421,9 @@ graph TB
    - Redis: Increase memory for larger cache
 
 3. **Caching Strategy**:
-   - L1: Application-level cache (in-memory)
-   - L2: Redis distributed cache
-   - L3: Database query optimization
+   - L1: LLM response cache (in-memory TTLCache, 24h TTL)
+   - L2: Redis distributed cache (session, price, LLM, review caches)
+   - L3: Database query optimization (indexes, engine singleton)
 
 4. **Auto-scaling Triggers**:
    - CPU > 70% for 5 minutes
@@ -450,21 +453,30 @@ graph TB
 
 ## Monitoring & Observability
 
-1. **Metrics**:
-   - Request latency (P50, P95, P99)
+1. **Metrics** (`app/core/metrics.py` + `GET /health/metrics`):
+   - Request latency P50/P95 per endpoint (rolling 200-sample window)
    - Error rates by endpoint
    - Cache hit/miss ratios
    - LLM token usage & cost
 
 2. **Logging**:
    - Structured JSON logs
-   - Request ID tracing
+   - Request ID tracing (`X-Request-Id` header)
+   - Per-request latency (`X-Process-Time-Ms` header)
    - Agent decision logs
 
-3. **Alerting**:
+3. **Alerting** (`app/core/alerting.py` + `GET /health/alerts`):
+   - Rolling 5-min failure window, CRITICAL log at ≥10 failures
    - Error rate > 5%
    - Latency P95 > 3s
    - Database connection pool exhaustion
+
+4. **Performance Optimizations** (SCRUM-20):
+   - GZip compression for responses > 1KB (`GZipMiddleware`)
+   - LLM response cache (24h TTL) across all 4 agents
+   - DB engine/session factory singletons
+   - Performance indexes on rating, stock, review product_id, review rating
+   - Optimized agent prompts (~30% token reduction)
 
 ---
 
@@ -487,6 +499,6 @@ graph TB
 
 ---
 
-**Document Version**: 1.0
-**Last Updated**: February 2026
+**Document Version**: 1.1
+**Last Updated**: March 2026
 **Author**: SmartShop AI Architecture Team

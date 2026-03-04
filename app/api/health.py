@@ -24,6 +24,13 @@ async def health_alerts():
     return {"alerts": get_alert_status()}
 
 
+@router.get("/health/metrics")
+async def health_metrics():
+    """Return P50/P95 latency metrics per endpoint."""
+    from app.core.metrics import get_metrics_summary
+    return {"metrics": get_metrics_summary()}
+
+
 @router.get("/")
 async def root():
     """Root endpoint."""

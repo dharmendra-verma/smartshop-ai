@@ -26,6 +26,8 @@ class Product(Base):
     __table_args__ = (
         Index("idx_product_category_brand", "category", "brand"),
         Index("idx_product_price", "price"),
+        Index("idx_product_rating", "rating"),
+        Index("idx_product_stock", "stock"),
     )
 
     def __repr__(self) -> str:

@@ -91,6 +91,11 @@ class ReviewSummarizationAgent(BaseAgent):
                 error="AgentDependencies not provided in context['deps']",
             )
 
+        from app.core.llm_cache import get_cached_llm_response, set_cached_llm_response
+        llm_cached = get_cached_llm_response(self.name, query)
+        if llm_cached:
+            return llm_cached
+
         product_id: str | None = context.get("product_id")
         max_reviews: int = context.get("max_reviews", 20)
 
@@ -130,11 +135,13 @@ class ReviewSummarizationAgent(BaseAgent):
                 ttl=deps.settings.CACHE_TTL_SECONDS,
             )
 
-            return AgentResponse(
+            response = AgentResponse(
                 success=True,
                 data=data,
                 metadata={"model": str(self._agent.model)},
             )
+            set_cached_llm_response(self.name, query, response)
+            return response
 
         except Exception as exc:
             from app.core.exceptions import AgentRateLimitError, AgentTimeoutError

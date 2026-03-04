@@ -18,7 +18,7 @@ Stores the e-commerce product catalog.
 | created_at | DateTime(tz) | No | Record creation timestamp |
 | updated_at | DateTime(tz) | Yes | Last update timestamp |
 
-**Indexes:** product_id, name, brand, category, (category + brand), price
+**Indexes:** product_id, name, brand, category, (category + brand), price, rating, stock
 
 ### Reviews Table (`reviews`)
 
@@ -33,7 +33,7 @@ Stores customer product reviews with sentiment analysis.
 | sentiment | String(20) | Yes | positive, negative, or neutral |
 | timestamp | DateTime(tz) | No | Review creation timestamp |
 
-**Indexes:** review_id, product_id, (product_id + rating), sentiment, timestamp
+**Indexes:** review_id, product_id, (product_id + rating), sentiment, timestamp, rating
 **Constraints:** `check_rating_range` (rating >= 1 AND rating <= 5)
 
 ### Policies Table (`policies`)
@@ -76,7 +76,15 @@ alembic current
 alembic revision --autogenerate -m "description"
 ```
 
-Current version: `001` (initial schema)
+### Migration History
+
+| Revision | Description |
+|----------|-------------|
+| `001` | Initial schema (products, reviews, policies) |
+| `002` | Add image_url to products |
+| `003` | Add performance indexes (rating, stock, review product_id, review rating) |
+
+Current version: `003`
 
 ## Setup
 

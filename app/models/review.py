@@ -30,6 +30,8 @@ class Review(Base):
         Index("idx_review_product_rating", "product_id", "rating"),
         Index("idx_review_sentiment", "sentiment"),
         Index("idx_review_date", "review_date"),
+        Index("idx_review_product_id", "product_id"),
+        Index("idx_review_rating", "rating"),
     )
 
     def __repr__(self) -> str:

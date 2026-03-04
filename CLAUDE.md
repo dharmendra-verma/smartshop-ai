@@ -77,6 +77,7 @@ Plan and start working in below sequence and with given instruciton
 | SCRUM-43 | 312 |
 | SCRUM-19 | 341 |
 | SCRUM-61 | 362 |
+| SCRUM-20 | 377 |
 
 ## Architecture
 ```
@@ -94,12 +95,13 @@ app/
     pricing/       # MockPricingService + PriceCache (Redis/TTLCache)
     session/       # SessionManager + SessionStore (Redis/TTLCache)
     ingestion/     # CSV ingesters
+    cache_warmer.py # Startup cache pre-warm
   ui/
     streamlit_app.py
     api_client.py
     components/    # product_card, review_display, review_panel, chat_helpers, star_rating, floating_chat
     design_tokens.py
-  core/            # config, database, cache (RedisCache, TTLCache), exceptions, query_cache, alerting
+  core/            # config, database, cache (RedisCache, TTLCache), llm_cache, metrics, exceptions, query_cache, alerting
   middleware/       # error_handler, request_id, logging_middleware
 ```
 
@@ -115,6 +117,8 @@ app/
 | Error handling | Custom `SmartShopError` hierarchy; agents check `type(exc).__name__` for OpenAI errors → raise `AgentRateLimitError`/`AgentTimeoutError`; generic errors → `record_failure()` + return generic message |
 | Request ID | `RequestIdMiddleware` adds 8-char UUID to `request.state.request_id` + `X-Request-Id` header |
 | Query cache | `query_cache.cache_response()`/`get_cached_response()` — 24h TTL fallback in Orchestrator before general agent |
+| LLM cache | `llm_cache.get_cached_llm_response()`/`set_cached_llm_response()` — 24h TTL, all 4 agents, Redis→TTLCache |
+| Metrics | `metrics.record_latency()`/`get_metrics_summary()` — rolling 200-sample P50/P95 per endpoint; `/health/metrics` |
 | Alerting | `alerting.record_failure(component)` — rolling 5min window, CRITICAL log at ≥10 failures; `/health/alerts` endpoint |
 
 ## Agents & Endpoints
@@ -128,11 +132,11 @@ app/
 | GeneralResponseAgent | (fallback via orchestrator) | general |
 
 ## Completed Stories
-SCRUM-8 (Load Product Catalog) → SCRUM-9 (FastAPI scaffold) → SCRUM-10 (RecommendationAgent) → SCRUM-11 (ReviewAgent) → SCRUM-12 (Streamlit UI) → SCRUM-13 (E2E integration) → SCRUM-14 (PriceAgent) → SCRUM-15 (PolicyAgent/RAG) → SCRUM-16 (Orchestrator/Intent Router) → SCRUM-17 (Session Memory) → SCRUM-18 (UI Polish) → SCRUM-40 (Product Images) → SCRUM-41 (Floating Chat Widget) → SCRUM-42 (Compact Product Card) → SCRUM-43 (Infinite Load) → SCRUM-19 (Error Handling & Resilience) → SCRUM-61 (Inline Reviews Panel)
+SCRUM-8 (Load Product Catalog) → SCRUM-9 (FastAPI scaffold) → SCRUM-10 (RecommendationAgent) → SCRUM-11 (ReviewAgent) → SCRUM-12 (Streamlit UI) → SCRUM-13 (E2E integration) → SCRUM-14 (PriceAgent) → SCRUM-15 (PolicyAgent/RAG) → SCRUM-16 (Orchestrator/Intent Router) → SCRUM-17 (Session Memory) → SCRUM-18 (UI Polish) → SCRUM-40 (Product Images) → SCRUM-41 (Floating Chat Widget) → SCRUM-42 (Compact Product Card) → SCRUM-43 (Infinite Load) → SCRUM-19 (Error Handling & Resilience) → SCRUM-61 (Inline Reviews Panel) → SCRUM-20 (Performance Optimization)
 
 ## In-Progress Plans
-- `plans/plan/SCRUM-20.md` — Performance Optimization (GZip, LLM cache, DB engine singleton, indexes, metrics)
 - `plans/plan/SCRUM-60.md` — UI Revamp: Single-page layout, left filter panel (Category + Brand), auto-load product grid, chat-driven insights
+- `plans/plan/SCRUM-62.md` — Inline Product Comparison: compare toggle on cards, FIFO 2-product selection, side-by-side diff table, compare_panel.py, no new API calls
 
 ## Tech Stack
 | Tool | Version / Detail |

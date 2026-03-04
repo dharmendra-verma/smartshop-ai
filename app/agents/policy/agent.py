@@ -57,16 +57,23 @@ class PolicyAgent(BaseAgent):
             return AgentResponse(success=False, data={},
                 error="AgentDependencies not provided in context['deps']")
 
+        from app.core.llm_cache import get_cached_llm_response, set_cached_llm_response
+        cached = get_cached_llm_response(self.name, query)
+        if cached:
+            return cached
+
         vector_store = context.get("vector_store") or get_vector_store()
         policy_deps  = PolicyDependencies(db=deps.db, settings=deps.settings,
                                           vector_store=vector_store)
         try:
             result = await self._agent.run(query, deps=policy_deps, usage_limits=UsageLimits(request_limit=15))
             ans: _PolicyAnswer = result.output
-            return AgentResponse(success=True, data={
+            response = AgentResponse(success=True, data={
                 "query": query, "answer": ans.answer, "sources": ans.sources,
                 "confidence": ans.confidence, "agent": self.name,
             })
+            set_cached_llm_response(self.name, query, response)
+            return response
         except Exception as exc:
             from app.core.exceptions import AgentRateLimitError, AgentTimeoutError
             from app.core.alerting import record_failure

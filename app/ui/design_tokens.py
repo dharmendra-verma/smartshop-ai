@@ -50,7 +50,7 @@ def get_global_css() -> str:
 .product-card {{
     border: 1px solid #e0e0e0;
     border-radius: {RADIUS_MD};
-    padding: {SPACE_MD};
+    padding: 10px;
     transition: box-shadow 0.2s ease, transform 0.15s ease;
 }}
 .product-card:hover {{
@@ -86,6 +86,29 @@ def get_global_css() -> str:
 .star-filled  {{ color: #f5a623; font-size: 1.1rem; }}
 .star-half    {{ color: #f5a623; font-size: 1.1rem; }}
 .star-empty   {{ color: #d0d0d0; font-size: 1.1rem; }}
+
+/* ── Product Description (inline, truncated) ─────────────────── */
+.product-description {{
+    font-size: 12px;
+    color: #6B7280;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    margin: 4px 0;
+    line-height: 1.4;
+}}
+
+/* ── Review Count Link ───────────────────────────────────────── */
+.review-count-link {{
+    font-size: 0.8rem;
+    color: {COLOR_BRAND_PRIMARY};
+    text-decoration: none;
+    margin-left: 4px;
+}}
+.review-count-link:hover {{
+    text-decoration: underline;
+}}
 
 /* ── Chat Bubbles ─────────────────────────────────────────────── */
 .chat-timestamp {{

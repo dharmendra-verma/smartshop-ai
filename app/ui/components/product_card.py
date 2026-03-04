@@ -33,7 +33,11 @@ def render_product_card(product: dict) -> None:
             if price is not None
             else '<span class="price-badge">N/A</span>'
         )
-        stars_html = render_star_rating_html(rating, label=product.get("name"))
+        stars_html = render_star_rating_html(
+            rating,
+            label=product.get("name"),
+            review_count=product.get("review_count"),
+        )
         st.markdown(f"{price_html} &nbsp; {stars_html}", unsafe_allow_html=True)
 
         if product.get("brand"):
@@ -66,8 +70,10 @@ def render_product_card(product: dict) -> None:
             st.progress(score, text=f"Relevance: {score:.0%}")
 
         if product.get("description"):
-            with st.expander("Show Description"):
-                st.write(product.get("description"))
+            st.markdown(
+                f'<p class="product-description">{product["description"]}</p>',
+                unsafe_allow_html=True,
+            )
 
 
 def render_product_grid(products: list[dict], cols: int = 3) -> None:

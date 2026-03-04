@@ -18,6 +18,7 @@ class ProductResponse(BaseModel):
     category: str
     stock: Optional[int] = None
     rating: Optional[float] = None
+    review_count: Optional[int] = None
     image_url: Optional[str] = None
     created_at: Optional[datetime] = None
 

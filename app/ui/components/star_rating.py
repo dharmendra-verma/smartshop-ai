@@ -5,7 +5,8 @@ import math
 
 def render_star_rating_html(rating: float | None,
                              max_stars: int = 5,
-                             label: str | None = None) -> str:
+                             label: str | None = None,
+                             review_count: int | None = None) -> str:
     """
     Return an HTML span with filled / half / empty star characters and
     an aria-label for screen-reader accessibility.
@@ -14,6 +15,7 @@ def render_star_rating_html(rating: float | None,
         rating: float 0–5 (None → returns "N/A")
         max_stars: defaults to 5
         label: optional additional aria description (e.g. product name)
+        review_count: optional number of reviews to display after stars
 
     Returns:
         HTML string safe to use with st.markdown(..., unsafe_allow_html=True)
@@ -23,6 +25,9 @@ def render_star_rating_html(rating: float | None,
             <span class="star-rating" aria-label="4.3 out of 5 stars" role="img">
               ★★★★½☆</span>
     """
+    if review_count is not None and review_count == 0:
+        return '<span class="star-empty" aria-label="No reviews">No reviews yet</span>'
+
     if rating is None:
         return '<span class="star-empty" aria-label="No rating">N/A</span>'
 
@@ -41,9 +46,20 @@ def render_star_rating_html(rating: float | None,
             stars_html.append('<span class="star-empty" aria-hidden="true">☆</span>')
 
     inner = "".join(stars_html)
+
+    if review_count is not None:
+        plural = "s" if review_count != 1 else ""
+        count_html = (
+            f' <a href="#reviews" class="review-count-link" '
+            f'aria-label="{review_count} customer review{plural}">'
+            f'{review_count} review{plural}</a>'
+        )
+    else:
+        count_html = ""
+
     return (
         f'<span class="star-rating" aria-label="{aria}" role="img">'
-        f'{inner}</span>'
+        f'{inner}</span>{count_html}'
     )
 
 

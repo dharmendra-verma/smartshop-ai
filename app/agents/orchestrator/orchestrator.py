@@ -1,4 +1,10 @@
-"""Multi-agent orchestrator."""
+"""Multi-agent orchestrator.
+
+Routes user queries to specialized agents via intent classification.
+
+Pipeline: classify intent → enrich context → check circuit breaker → call agent
+                                                                    → on failure: try query cache → fall back to general agent
+"""
 import logging
 from typing import Any
 from app.agents.base import BaseAgent, AgentResponse
@@ -16,6 +22,7 @@ class Orchestrator:
 
     async def handle(self, query: str, context: dict[str, Any]
                      ) -> tuple[AgentResponse, _IntentResult]:
+        """Classify intent, route to agent, handle failures with multi-level fallback."""
         intent_result = await self._classifier.classify(query)
         intent_name   = intent_result.intent.value
 

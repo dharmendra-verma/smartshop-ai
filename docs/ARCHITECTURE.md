@@ -480,6 +480,25 @@ graph TB
 
 ---
 
+## Quality Assurance Layers
+
+```
+┌──────────────────────────────────────────┐
+│  Unit Tests (~390)                        │
+│  TestModel mocks, AsyncMock, SQLite      │  ← Zero API cost
+│  Tests: agents, API, core, services, UI  │
+├──────────────────────────────────────────┤
+│  Eval Tests (97)                          │
+│  LLM-as-judge (gpt-4o-mini)             │  ← Real API calls (opt-in)
+│  Tests: quality, relevance, correctness  │
+│  Run: RUN_EVALS=1 pytest tests/evals/    │
+└──────────────────────────────────────────┘
+```
+
+Unit tests verify **plumbing** (routing, DB queries, error paths). Eval tests verify **AI reasoning quality** (relevance, correctness, helpfulness). See [EVALS.md](EVALS.md) for details.
+
+---
+
 ## Future Enhancements
 
 1. **v2.0 Features**:

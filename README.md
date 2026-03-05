@@ -137,11 +137,12 @@ smartshop-ai/
 │   └── main.py                # FastAPI application entry
 ├── alembic/                   # Database migrations
 ├── data/                      # CSV datasets
-├── tests/                     # 286+ pytest tests
+├── tests/                     # 390+ unit tests + 97 eval tests
 │   ├── test_agents/
 │   ├── test_api/
-│   └── test_services/
-├── docs/                      # Architecture & status docs
+│   ├── test_services/
+│   └── evals/                 # LLM-as-judge evaluation framework
+├── docs/                      # Comprehensive documentation
 ├── plans/                     # Story plans (plan/, inprogress/, completed/)
 └── requirements.txt
 ```
@@ -162,15 +163,36 @@ smartshop-ai/
 ## 🧪 Testing
 
 ```bash
-# Run all tests
+# Run all unit/integration tests (no API cost)
 pytest
 
 # Run with coverage
 pytest --cov=app --cov-report=html
 
 # Run specific test file
-pytest tests/test_agents/test_recommendation.py
+pytest tests/test_agents/test_recommendation.py -v
+
+# Run LLM-as-judge eval tests (makes real OpenAI API calls)
+RUN_EVALS=1 pytest tests/evals/ -v -m eval
 ```
+
+**Test counts:** ~390 unit/integration tests + 97 eval tests = ~487 total.
+
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Architecture](docs/ARCHITECTURE.md) | System design, data flow, component details |
+| [API Reference](docs/API_REFERENCE.md) | All endpoints with request/response examples |
+| [Agents](docs/AGENTS.md) | Agent design, tools, output schemas, caching |
+| [Testing](docs/TESTING.md) | Test patterns, mocking, how to run tests |
+| [Evals](docs/EVALS.md) | LLM-as-judge evaluation framework |
+| [Deployment](docs/DEPLOYMENT.md) | Docker, env vars, production checklist |
+| [Developer Guide](docs/DEVELOPER_GUIDE.md) | How to add agents, extend the system |
+| [Data Pipeline](docs/DATA_PIPELINE.md) | CSV ingestion, FAISS index, data schemas |
+| [Monitoring](docs/MONITORING.md) | Metrics, alerting, health endpoints |
+| [Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues and fixes |
+| [Database](docs/DATABASE.md) | Schema, migrations, entity relationships |
 
 ## 📊 Success Metrics
 

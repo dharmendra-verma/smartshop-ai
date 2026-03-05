@@ -1,4 +1,13 @@
-"""Per-agent circuit breaker."""
+"""Per-agent circuit breaker.
+
+State machine: CLOSED ─(3 failures)→ OPEN ─(30s timeout)→ HALF_OPEN
+                 ↑                                            │
+                 └──────────(success)─────────────────────────┘
+                                                              │
+               OPEN ←──────(failure)──────────────────────────┘
+
+When OPEN, is_available() returns False and the orchestrator falls back to the general agent.
+"""
 import time, logging
 from enum import Enum
 

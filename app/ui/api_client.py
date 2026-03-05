@@ -163,6 +163,14 @@ def summarize_reviews(
     return _post(f"{api_url}/api/v1/reviews/summarize", payload)
 
 
+def get_categories(api_url: str) -> list[str]:
+    """Fetch distinct product categories from backend. Returns list or empty on error."""
+    result = _get(f"{api_url}/api/v1/products/categories")
+    if result["success"]:
+        return result["data"]
+    return []
+
+
 def search_products(
     api_url: str,
     category: str | None = None,

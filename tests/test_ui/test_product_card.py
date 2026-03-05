@@ -1,10 +1,11 @@
-"""Unit tests for product_card component (SCRUM-42)."""
+"""Unit tests for product_card component (SCRUM-42, SCRUM-62)."""
 
 from unittest.mock import MagicMock, patch, call
 import pytest
 
 
 SAMPLE_PRODUCT = {
+    "id": "HP001",
     "name": "Test Headphones",
     "price": 99.99,
     "rating": 4.5,
@@ -86,3 +87,57 @@ def test_stock_out_badge(mock_st):
     render_product_card(product)
     found = any("stock-badge-out" in str(c) for c in mock_st.markdown.call_args_list)
     assert found, "Stock badge should show 'out' for stock == 0"
+
+
+def test_compare_checkbox_shown_on_card(mock_st):
+    """Compare checkbox rendered for product with valid ID."""
+    mock_st.session_state = {"compare_product_ids": [], "compare_open": False}
+    from app.ui.components.product_card import render_product_card
+    render_product_card(SAMPLE_PRODUCT)
+    checkbox_calls = mock_st.checkbox.call_args_list
+    compare_calls = [c for c in checkbox_calls if "Compare" in str(c)]
+    assert len(compare_calls) > 0, "Compare checkbox should be rendered"
+
+
+def test_compare_checkbox_checked_when_selected(mock_st):
+    """Checkbox value is True when product_id in compare_product_ids."""
+    mock_st.session_state = {
+        "compare_product_ids": ["HP001"],
+        "compare_open": False,
+    }
+    from app.ui.components.product_card import render_product_card
+    render_product_card(SAMPLE_PRODUCT)
+    checkbox_calls = mock_st.checkbox.call_args_list
+    for c in checkbox_calls:
+        kwargs = c[1] if c[1] else {}
+        if kwargs.get("key", "").startswith("compare_"):
+            assert kwargs.get("value") is True, "Checkbox should be checked when selected"
+            break
+
+
+def test_compare_fifo_removes_oldest_on_third_selection():
+    """Adding a 3rd ID removes the first — FIFO behaviour."""
+    state = {"compare_product_ids": ["A", "B"], "compare_open": False}
+
+    with patch("app.ui.components.product_card.st") as mock_st:
+        mock_st.session_state = state
+        mock_st.container.return_value.__enter__ = MagicMock(return_value=None)
+        mock_st.container.return_value.__exit__ = MagicMock(return_value=False)
+        from app.ui.components.product_card import render_product_card
+
+        product = {**SAMPLE_PRODUCT, "id": "C"}
+        render_product_card(product)
+
+        # Find and call the on_change for compare checkbox
+        for c in mock_st.checkbox.call_args_list:
+            kwargs = c[1] if c[1] else {}
+            if kwargs.get("key", "").startswith("compare_"):
+                on_change = kwargs["on_change"]
+                on_change()
+                break
+
+    ids = state["compare_product_ids"]
+    assert "A" not in ids, "Oldest ID should be removed"
+    assert "B" in ids
+    assert "C" in ids
+    assert len(ids) == 2

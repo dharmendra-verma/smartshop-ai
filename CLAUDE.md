@@ -78,6 +78,7 @@ Plan and start working in below sequence and with given instruciton
 | SCRUM-19 | 341 |
 | SCRUM-61 | 362 |
 | SCRUM-20 | 377 |
+| SCRUM-62 | 390 |
 
 ## Architecture
 ```
@@ -132,11 +133,10 @@ app/
 | GeneralResponseAgent | (fallback via orchestrator) | general |
 
 ## Completed Stories
-SCRUM-8 (Load Product Catalog) → SCRUM-9 (FastAPI scaffold) → SCRUM-10 (RecommendationAgent) → SCRUM-11 (ReviewAgent) → SCRUM-12 (Streamlit UI) → SCRUM-13 (E2E integration) → SCRUM-14 (PriceAgent) → SCRUM-15 (PolicyAgent/RAG) → SCRUM-16 (Orchestrator/Intent Router) → SCRUM-17 (Session Memory) → SCRUM-18 (UI Polish) → SCRUM-40 (Product Images) → SCRUM-41 (Floating Chat Widget) → SCRUM-42 (Compact Product Card) → SCRUM-43 (Infinite Load) → SCRUM-19 (Error Handling & Resilience) → SCRUM-61 (Inline Reviews Panel) → SCRUM-20 (Performance Optimization)
+SCRUM-8 (Load Product Catalog) → SCRUM-9 (FastAPI scaffold) → SCRUM-10 (RecommendationAgent) → SCRUM-11 (ReviewAgent) → SCRUM-12 (Streamlit UI) → SCRUM-13 (E2E integration) → SCRUM-14 (PriceAgent) → SCRUM-15 (PolicyAgent/RAG) → SCRUM-16 (Orchestrator/Intent Router) → SCRUM-17 (Session Memory) → SCRUM-18 (UI Polish) → SCRUM-40 (Product Images) → SCRUM-41 (Floating Chat Widget) → SCRUM-42 (Compact Product Card) → SCRUM-43 (Infinite Load) → SCRUM-19 (Error Handling & Resilience) → SCRUM-61 (Inline Reviews Panel) → SCRUM-20 (Performance Optimization) → SCRUM-62 (Inline Product Comparison)
 
 ## In-Progress Plans
-- `plans/plan/SCRUM-60.md` — UI Revamp: Single-page layout, left filter panel (Category + Brand), auto-load product grid, chat-driven insights
-- `plans/plan/SCRUM-62.md` — Inline Product Comparison: compare toggle on cards, FIFO 2-product selection, side-by-side diff table, compare_panel.py, no new API calls
+_(none)_
 
 ## Tech Stack
 | Tool | Version / Detail |

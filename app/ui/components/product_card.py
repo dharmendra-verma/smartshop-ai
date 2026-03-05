@@ -80,9 +80,32 @@ def render_product_card(product: dict) -> None:
             score = product["relevance_score"]
             st.progress(score, text=f"Relevance: {score:.0%}")
 
+        # Compare checkbox (SCRUM-62)
+        product_id = product.get("id", "")
+        compare_ids: list = st.session_state.get("compare_product_ids", [])
+        is_comparing = product_id in compare_ids
+
+        def _toggle_compare(pid=product_id):
+            ids: list = list(st.session_state.get("compare_product_ids", []))
+            if pid in ids:
+                ids.remove(pid)
+                st.session_state["compare_open"] = False
+                st.session_state["compare_ai_open"] = False
+            else:
+                if len(ids) >= 2:
+                    ids.pop(0)  # FIFO: remove oldest selection
+                ids.append(pid)
+            st.session_state["compare_product_ids"] = ids
+
+        st.checkbox(
+            "⚖️ Compare",
+            value=is_comparing,
+            key=f"compare_{product_id}",
+            on_change=_toggle_compare,
+        )
+
         # Clickable reviews button (SCRUM-61)
         review_count = product.get("review_count", 0)
-        product_id = product.get("id", "")
         if review_count and review_count > 0:
             is_selected = st.session_state.get("selected_review_product_id") == product_id
             plural = "s" if review_count != 1 else ""

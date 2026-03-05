@@ -33,6 +33,11 @@ def get_global_css() -> str:
     Inject once via st.markdown(get_global_css(), unsafe_allow_html=True).
     """
     return f"""<style>
+/* ── Reduce Streamlit default top padding ─────────────────────── */
+.block-container {{
+    padding-top: 2rem !important;
+}}
+
 /* ── Brand Header ─────────────────────────────────────────────── */
 .main-header {{
     font-size: {FONT_SIZE_H1};
@@ -157,6 +162,66 @@ def get_global_css() -> str:
 .sentiment-positive {{ color: {COLOR_SUCCESS}; font-weight: 600; }}
 .sentiment-negative {{ color: {COLOR_WARNING}; font-weight: 600; }}
 .sentiment-neutral  {{ color: #666; font-weight: 600; }}
+
+/* ── Compare Panel (SCRUM-62) ─────────────────────────────────── */
+.compare-panel {{
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: {RADIUS_MD};
+    padding: {SPACE_MD};
+    margin: {SPACE_MD} 0;
+    overflow-x: auto;
+}}
+.compare-panel-header {{
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: {COLOR_BRAND_PRIMARY};
+    margin-bottom: {SPACE_SM};
+}}
+.compare-table {{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}}
+.compare-label {{
+    font-weight: 600;
+    color: #444;
+    background: #f0f4f8;
+    padding: 8px 12px;
+    width: 20%;
+    border: 1px solid #e0e0e0;
+    vertical-align: top;
+}}
+.compare-cell {{
+    padding: 8px 12px;
+    border: 1px solid #e0e0e0;
+    width: 40%;
+    vertical-align: top;
+}}
+.compare-col-header {{
+    font-weight: 700;
+    color: {COLOR_BRAND_PRIMARY};
+    background: #eaf3fb;
+}}
+.compare-row-diff td {{
+    background: #fffbcc !important;
+}}
+.compare-thumb {{
+    width: 80px;
+    height: 60px;
+    object-fit: contain;
+    border-radius: {RADIUS_SM};
+}}
+.compare-diff-legend {{
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: {SPACE_SM};
+}}
+.compare-action-bar {{
+    font-size: 0.95rem;
+    color: #333;
+    padding: 10px 0;
+}}
 
 /* ── Accessibility: focus ring ────────────────────────────────── */
 button:focus-visible, a:focus-visible {{

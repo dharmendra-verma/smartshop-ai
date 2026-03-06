@@ -19,11 +19,17 @@ def _index_exists(conn, table, index_name):
     return any(idx["name"] == index_name for idx in inspector.get_indexes(table))
 
 
+def _column_exists(conn, table, column_name):
+    inspector = sa_inspect(conn)
+    return any(col["name"] == column_name for col in inspector.get_columns(table))
+
+
 def upgrade():
     conn = op.get_bind()
-    if not _index_exists(conn, "products", "idx_product_rating"):
+    # Only create index if the column exists (rating/stock may not be on products)
+    if _column_exists(conn, "products", "rating") and not _index_exists(conn, "products", "idx_product_rating"):
         op.create_index("idx_product_rating", "products", ["rating"])
-    if not _index_exists(conn, "products", "idx_product_stock"):
+    if _column_exists(conn, "products", "stock") and not _index_exists(conn, "products", "idx_product_stock"):
         op.create_index("idx_product_stock", "products", ["stock"])
     if not _index_exists(conn, "reviews", "idx_review_product_id"):
         op.create_index("idx_review_product_id", "reviews", ["product_id"])

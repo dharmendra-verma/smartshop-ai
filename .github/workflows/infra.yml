@@ -1,0 +1,55 @@
+name: Infrastructure Deployment
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "infra/**"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        type: choice
+        options:
+          - staging
+          - prod
+
+jobs:
+  deploy-infra:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set environment
+        id: env
+        run: |
+          ENV=${{ github.event.inputs.environment || 'staging' }}
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+
+      - name: Validate Bicep template
+        run: |
+          az bicep build --file infra/main.bicep
+
+      - name: What-if preview
+        run: |
+          az deployment sub create \
+            --location eastus \
+            --template-file infra/main.bicep \
+            --parameters infra/parameters.${{ steps.env.outputs.environment }}.json \
+            --what-if
+
+      - name: Deploy infrastructure
+        run: |
+          az deployment sub create \
+            --location eastus \
+            --template-file infra/main.bicep \
+            --parameters infra/parameters.${{ steps.env.outputs.environment }}.json

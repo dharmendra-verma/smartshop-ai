@@ -1,0 +1,15 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": { "value": "prod" },
+    "location": { "value": "eastus" },
+    "acrSku": { "value": "Standard" },
+    "dbSkuName": { "value": "Standard_B2s" },
+    "redisSku": { "value": "Basic" },
+    "apiMinReplicas": { "value": 2 },
+    "apiMaxReplicas": { "value": 5 },
+    "uiMinReplicas": { "value": 1 },
+    "uiMaxReplicas": { "value": 3 }
+  }
+}

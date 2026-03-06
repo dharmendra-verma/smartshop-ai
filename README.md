@@ -2,6 +2,7 @@
 
 **AI-Driven Multi-Agent E-commerce Assistant**
 
+[![CI](https://github.com/<OWNER>/<REPO>/actions/workflows/ci.yml/badge.svg)](https://github.com/<OWNER>/<REPO>/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)](https://fastapi.tiangolo.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -193,6 +194,8 @@ RUN_EVALS=1 pytest tests/evals/ -v -m eval
 | [Monitoring](docs/MONITORING.md) | Metrics, alerting, health endpoints |
 | [Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues and fixes |
 | [Database](docs/DATABASE.md) | Schema, migrations, entity relationships |
+| [CI/CD](docs/CICD.md) | GitHub Actions pipelines, deployment flow |
+| [Azure Setup](docs/AZURE_SETUP.md) | Azure infrastructure, Container Apps setup |
 
 ## 📊 Success Metrics
 

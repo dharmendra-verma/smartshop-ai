@@ -1,4 +1,6 @@
-# Multi-stage Dockerfile for SmartShop AI
+# Multi-stage Dockerfile for SmartShop AI API
+
+ARG GIT_SHA=latest
 
 # Stage 1: Base Python image
 FROM python:3.11-slim as base
@@ -33,10 +35,19 @@ RUN pip install --upgrade pip && \
 # Stage 3: Application
 FROM dependencies as application
 
+ARG GIT_SHA=latest
+LABEL git.sha=${GIT_SHA}
+LABEL maintainer="SmartShop AI Team"
+
 # Copy application code
 COPY ./app /app/app
 COPY ./scripts /app/scripts
+COPY ./alembic /app/alembic
+COPY ./alembic.ini /app/alembic.ini
 COPY ./.env.example /app/.env
+
+# Copy data directory for FAISS embeddings
+COPY ./data /app/data
 
 # Create necessary directories
 RUN mkdir -p /app/data/raw /app/data/processed /app/data/embeddings

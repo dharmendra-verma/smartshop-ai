@@ -1,0 +1,76 @@
+name: CD Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy (git SHA from staging)"
+        required: true
+        type: string
+
+concurrency:
+  group: cd-production
+  cancel-in-progress: false
+
+env:
+  ACR_NAME: acrsmartshopprod
+  RESOURCE_GROUP: rg-smartshop-prod
+  API_APP_NAME: smartshop-api-prod
+  UI_APP_NAME: smartshop-ui-prod
+
+jobs:
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get current API revision
+        id: current-revision
+        run: |
+          REVISION=$(az containerapp revision list \
+            --name ${{ env.API_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "[?properties.active].name | [0]" -o tsv)
+          echo "revision=$REVISION" >> $GITHUB_OUTPUT
+
+      - name: Deploy API Container App
+        run: |
+          az containerapp update \
+            --name ${{ env.API_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image ${{ env.ACR_NAME }}.azurecr.io/smartshop-api:${{ inputs.image_tag }}
+
+      - name: Deploy UI Container App
+        run: |
+          az containerapp update \
+            --name ${{ env.UI_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image ${{ env.ACR_NAME }}.azurecr.io/smartshop-ui:${{ inputs.image_tag }}
+
+      - name: Wait for revision to stabilize
+        run: sleep 30
+
+      - name: Health check validation
+        id: health-check
+        run: |
+          API_URL=$(az containerapp show --name ${{ env.API_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query "properties.configuration.ingress.fqdn" -o tsv)
+          chmod +x scripts/smoke_test.sh
+          ./scripts/smoke_test.sh "https://$API_URL"
+
+      - name: Rollback on failure
+        if: failure() && steps.health-check.outcome == 'failure'
+        run: |
+          echo "Health check failed — rolling back to previous revision"
+          az containerapp revision activate \
+            --name ${{ env.API_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --revision ${{ steps.current-revision.outputs.revision }}
+          echo "Rollback complete"

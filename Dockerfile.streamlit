@@ -1,6 +1,12 @@
 # Dockerfile for Streamlit UI
 
+ARG GIT_SHA=latest
+
 FROM python:3.11-slim
+
+ARG GIT_SHA=latest
+LABEL git.sha=${GIT_SHA}
+LABEL maintainer="SmartShop AI Team"
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -16,10 +22,10 @@ RUN apt-get update && apt-get install -y \
 # Create app directory
 WORKDIR /app
 
-# Copy requirements and install
-COPY requirements.txt .
+# Copy slim requirements for UI only
+COPY requirements-ui.txt .
 RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+    pip install -r requirements-ui.txt
 
 # Copy application code
 COPY ./app /app/app

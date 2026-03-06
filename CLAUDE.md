@@ -80,6 +80,7 @@ Plan and start working in below sequence and with given instruciton
 | SCRUM-20 | 377 |
 | SCRUM-62 | 390 |
 | SCRUM-21 | 399 |
+| SCRUM-64 | 430 |
 
 ## Architecture
 ```
@@ -105,6 +106,9 @@ app/
     design_tokens.py
   core/            # config, database, cache (RedisCache, TTLCache), llm_cache, metrics, exceptions, query_cache, alerting
   middleware/       # error_handler, request_id, logging_middleware
+.github/workflows/ # CI/CD pipelines (ci, cd-staging, cd-production, infra)
+infra/             # Azure Bicep IaC (main.bicep, modules/, parameters)
+scripts/           # smoke_test.sh, data ingestion scripts
 ```
 
 ## Key Patterns
@@ -134,10 +138,10 @@ app/
 | GeneralResponseAgent | (fallback via orchestrator) | general |
 
 ## Completed Stories
-SCRUM-8 (Load Product Catalog) → SCRUM-9 (FastAPI scaffold) → SCRUM-10 (RecommendationAgent) → SCRUM-11 (ReviewAgent) → SCRUM-12 (Streamlit UI) → SCRUM-13 (E2E integration) → SCRUM-14 (PriceAgent) → SCRUM-15 (PolicyAgent/RAG) → SCRUM-16 (Orchestrator/Intent Router) → SCRUM-17 (Session Memory) → SCRUM-18 (UI Polish) → SCRUM-40 (Product Images) → SCRUM-41 (Floating Chat Widget) → SCRUM-42 (Compact Product Card) → SCRUM-43 (Infinite Load) → SCRUM-19 (Error Handling & Resilience) → SCRUM-61 (Inline Reviews Panel) → SCRUM-20 (Performance Optimization) → SCRUM-62 (Inline Product Comparison) → SCRUM-21 (Comprehensive Documentation)
+SCRUM-8 (Load Product Catalog) → SCRUM-9 (FastAPI scaffold) → SCRUM-10 (RecommendationAgent) → SCRUM-11 (ReviewAgent) → SCRUM-12 (Streamlit UI) → SCRUM-13 (E2E integration) → SCRUM-14 (PriceAgent) → SCRUM-15 (PolicyAgent/RAG) → SCRUM-16 (Orchestrator/Intent Router) → SCRUM-17 (Session Memory) → SCRUM-18 (UI Polish) → SCRUM-40 (Product Images) → SCRUM-41 (Floating Chat Widget) → SCRUM-42 (Compact Product Card) → SCRUM-43 (Infinite Load) → SCRUM-19 (Error Handling & Resilience) → SCRUM-61 (Inline Reviews Panel) → SCRUM-20 (Performance Optimization) → SCRUM-62 (Inline Product Comparison) → SCRUM-21 (Comprehensive Documentation) → SCRUM-64 (CI/CD Pipeline & Azure Container Apps)
 
 ## In-Progress Plans
-_(none)_
+(none)
 
 ## Tech Stack
 | Tool | Version / Detail |
@@ -152,4 +156,6 @@ _(none)_
 | Session TTL | 1800s (30 min) |
 | Price TTL | 3600s (1 hr) |
 | Alembic | migrations in `alembic/versions/` |
+| CI/CD | GitHub Actions (ci.yml, cd-staging.yml, cd-production.yml) |
+| Infrastructure | Azure Container Apps, ACR, Bicep IaC (`infra/`) |
 | Tests | pytest, target grows ~10–20 per story |

@@ -27,6 +27,13 @@ param uiMinReplicas int = 1
 @description('UI maximum replicas')
 param uiMaxReplicas int = 3
 
+@description('PostgreSQL administrator login')
+param dbAdminLogin string = 'smartshopadmin'
+
+@secure()
+@description('PostgreSQL administrator password')
+param dbAdminPassword string
+
 // Resource Group
 resource rg 'Microsoft.Resources/resourceGroups@2023-07-01' = {
   name: 'rg-smartshop-${environmentName}'
@@ -47,6 +54,8 @@ module resources 'modules/resources.bicep' = {
     apiMaxReplicas: apiMaxReplicas
     uiMinReplicas: uiMinReplicas
     uiMaxReplicas: uiMaxReplicas
+    dbAdminLogin: dbAdminLogin
+    dbAdminPassword: dbAdminPassword
   }
 }
 

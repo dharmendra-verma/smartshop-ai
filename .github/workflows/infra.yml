@@ -45,6 +45,7 @@ jobs:
             --location eastus \
             --template-file infra/main.bicep \
             --parameters infra/parameters.${{ steps.env.outputs.environment }}.json \
+            --parameters dbAdminPassword=${{ secrets.DB_ADMIN_PASSWORD }} \
             --what-if
 
       - name: Deploy infrastructure
@@ -52,4 +53,5 @@ jobs:
           az deployment sub create \
             --location eastus \
             --template-file infra/main.bicep \
-            --parameters infra/parameters.${{ steps.env.outputs.environment }}.json
+            --parameters infra/parameters.${{ steps.env.outputs.environment }}.json \
+            --parameters dbAdminPassword=${{ secrets.DB_ADMIN_PASSWORD }}

@@ -25,6 +25,13 @@ param uiMinReplicas int
 @description('UI max replicas')
 param uiMaxReplicas int
 
+@description('PostgreSQL administrator login')
+param dbAdminLogin string
+
+@secure()
+@description('PostgreSQL administrator password')
+param dbAdminPassword string
+
 // Log Analytics Workspace
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   name: 'log-smartshop-${environmentName}'
@@ -99,6 +106,8 @@ resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2023-06-01-preview'
     tier: 'Burstable'
   }
   properties: {
+    administratorLogin: dbAdminLogin
+    administratorLoginPassword: dbAdminPassword
     version: '15'
     storage: {
       storageSizeGB: 32

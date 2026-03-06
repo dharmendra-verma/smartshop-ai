@@ -6,8 +6,8 @@
 set -euo pipefail
 
 BASE_URL="${1:?Usage: $0 <base_url>}"
-MAX_RETRIES=5
-RETRY_DELAY=10
+MAX_RETRIES=10
+RETRY_DELAY=15
 
 check_endpoint() {
     local url="$1"

@@ -1,66 +1,65 @@
 # Core FastAPI & Web Framework
-fastapi==0.109.0
-uvicorn[standard]==0.27.0
-pydantic==2.5.3
-pydantic-settings==2.1.0
-python-multipart==0.0.6
+fastapi>=0.109.0,<1.0.0
+uvicorn[standard]>=0.27.0,<1.0.0
+pydantic>=2.10.0,<3.0.0
+pydantic-settings>=2.1.0,<3.0.0
+python-multipart>=0.0.6
 
 # AI & Machine Learning
-openai==1.10.0
-pydantic-ai>=1.0.0,<2.0.0
-tiktoken==0.5.2
+openai>=1.10.0
+pydantic-ai>=0.0.36,<2.0.0
+tiktoken>=0.5.2
 
 # Database & ORM
-sqlalchemy==2.0.25
-asyncpg==0.29.0
-psycopg2-binary==2.9.9
-alembic==1.13.1
+sqlalchemy>=2.0.25,<3.0.0
+asyncpg>=0.29.0
+psycopg2-binary>=2.9.9
+alembic>=1.13.1,<2.0.0
 
 # Data Processing
-pandas==2.2.0
-numpy==1.26.3
-scikit-learn==1.4.0
+pandas>=2.2.0,<3.0.0
+numpy>=1.26.3,<3.0.0
+scikit-learn>=1.4.0,<2.0.0
 
 # NLP & Embeddings
-sentence-transformers==2.3.1
-faiss-cpu==1.7.4
+sentence-transformers>=2.3.1
+faiss-cpu>=1.7.4
 
 # Frontend
-streamlit==1.30.0
-gradio==4.15.0
-plotly==5.18.0
+streamlit>=1.30.0,<2.0.0
+plotly>=5.18.0
 
 # Caching & Session Management
-redis==5.0.1
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
+redis>=5.0.1,<6.0.0
+python-jose[cryptography]>=3.3.0,<4.0.0
+passlib[bcrypt]>=1.7.4,<2.0.0
 
 # HTTP & API Client
-httpx>=0.27.0,<1.0.0
-requests==2.31.0
+httpx>=0.27.0
+requests>=2.31.0,<3.0.0
 
 # Configuration & Environment
-python-dotenv==1.0.0
-pyyaml==6.0.1
+python-dotenv>=1.0.0,<2.0.0
+pyyaml>=6.0.1,<7.0.0
 
 # Logging & Monitoring
-loguru==0.7.2
-python-json-logger==2.0.7
+loguru>=0.7.2,<1.0.0
+python-json-logger>=2.0.7,<3.0.0
 
 # Testing
-pytest==7.4.4
-pytest-asyncio==0.23.3
-pytest-cov==4.1.0
+pytest>=7.4.4
+pytest-asyncio>=0.23.3
+pytest-cov>=4.1.0
 
 # Code Quality
-black==24.1.1
-ruff==0.1.14
-mypy==1.8.0
+black>=24.1.1
+ruff>=0.1.14
+mypy>=1.8.0
 
 # Utilities
-python-slugify==8.0.1
-arrow==1.3.0
-tenacity==8.2.3
+python-slugify>=8.0.1,<9.0.0
+arrow>=1.3.0,<2.0.0
+tenacity>=8.2.3,<10.0.0
 
 # Production Server (Unix only, skip on Windows)
-gunicorn==21.2.0; sys_platform != "win32"
+gunicorn>=21.2.0; sys_platform != "win32"

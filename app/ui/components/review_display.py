@@ -47,9 +47,13 @@ def render_review_summary(data: dict) -> None:
     st.divider()
     col_pos, col_neg = st.columns(2)
     with col_pos:
-        render_sentiment_themes(data.get("positive_themes", []), "Positive Themes", "✅")
+        render_sentiment_themes(
+            data.get("positive_themes", []), "Positive Themes", "✅"
+        )
     with col_neg:
-        render_sentiment_themes(data.get("negative_themes", []), "Negative Themes", "❌")
+        render_sentiment_themes(
+            data.get("negative_themes", []), "Negative Themes", "❌"
+        )
 
     st.divider()
     render_rating_distribution(data.get("rating_distribution", {}))

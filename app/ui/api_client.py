@@ -41,12 +41,24 @@ def _get(url: str, params: dict | None = None) -> dict[str, Any]:
             return {"success": False, "data": None, "error": f"API error: {detail}"}
         except Exception as e:
             logger.error("Unexpected error in GET %s: %s", url, e)
-            return {"success": False, "data": None, "error": f"Unexpected error: {str(e)}"}
+            return {
+                "success": False,
+                "data": None,
+                "error": f"Unexpected error: {str(e)}",
+            }
 
     # All retries exhausted
     if isinstance(last_error, requests.exceptions.Timeout):
-        return {"success": False, "data": None, "error": "Request timed out after retries. Please try again."}
-    return {"success": False, "data": None, "error": "Cannot connect to backend after retries. Is FastAPI running?"}
+        return {
+            "success": False,
+            "data": None,
+            "error": "Request timed out after retries. Please try again.",
+        }
+    return {
+        "success": False,
+        "data": None,
+        "error": "Cannot connect to backend after retries. Is FastAPI running?",
+    }
 
 
 def _post(url: str, payload: dict) -> dict[str, Any]:
@@ -73,11 +85,23 @@ def _post(url: str, payload: dict) -> dict[str, Any]:
             return {"success": False, "data": None, "error": f"API error: {detail}"}
         except Exception as e:
             logger.error("Unexpected error in POST %s: %s", url, e)
-            return {"success": False, "data": None, "error": f"Unexpected error: {str(e)}"}
+            return {
+                "success": False,
+                "data": None,
+                "error": f"Unexpected error: {str(e)}",
+            }
 
     if isinstance(last_error, requests.exceptions.Timeout):
-        return {"success": False, "data": None, "error": "Request timed out after retries. Please try again."}
-    return {"success": False, "data": None, "error": "Cannot connect to backend after retries. Is FastAPI running?"}
+        return {
+            "success": False,
+            "data": None,
+            "error": "Request timed out after retries. Please try again.",
+        }
+    return {
+        "success": False,
+        "data": None,
+        "error": "Cannot connect to backend after retries. Is FastAPI running?",
+    }
 
 
 def _delete(url: str) -> dict[str, Any]:
@@ -107,14 +131,27 @@ def _delete(url: str) -> dict[str, Any]:
             return {"success": False, "data": None, "error": f"API error: {detail}"}
         except Exception as e:
             logger.error("Unexpected error in DELETE %s: %s", url, e)
-            return {"success": False, "data": None, "error": f"Unexpected error: {str(e)}"}
+            return {
+                "success": False,
+                "data": None,
+                "error": f"Unexpected error: {str(e)}",
+            }
 
     if isinstance(last_error, requests.exceptions.Timeout):
-        return {"success": False, "data": None, "error": "Request timed out after retries. Please try again."}
-    return {"success": False, "data": None, "error": "Cannot connect to backend after retries. Is FastAPI running?"}
+        return {
+            "success": False,
+            "data": None,
+            "error": "Request timed out after retries. Please try again.",
+        }
+    return {
+        "success": False,
+        "data": None,
+        "error": "Cannot connect to backend after retries. Is FastAPI running?",
+    }
 
 
 # -- Public API ----------------------------------------------------------------
+
 
 def health_check(api_url: str) -> bool:
     """Returns True if the backend is reachable and healthy."""
@@ -189,6 +226,7 @@ def search_products(
         params["brand"] = brand
     return _get(f"{api_url}/api/v1/products", params=params)
 
+
 def compare_prices(
     api_url: str,
     query: str,
@@ -198,7 +236,10 @@ def compare_prices(
     Call POST /api/v1/price/compare.
     Returns {"success": bool, "data": PriceCompareResponse dict, "error": str | None}
     """
-    return _post(f"{api_url}/api/v1/price/compare", {"query": query, "max_results": max_results})
+    return _post(
+        f"{api_url}/api/v1/price/compare", {"query": query, "max_results": max_results}
+    )
+
 
 def get_product_reviews(
     api_url: str,
@@ -216,8 +257,9 @@ def get_product_reviews(
     )
 
 
-def chat(api_url: str, message: str, session_id: str | None = None,
-         max_results: int = 5) -> dict[str, Any]:
+def chat(
+    api_url: str, message: str, session_id: str | None = None, max_results: int = 5
+) -> dict[str, Any]:
     """Call POST /api/v1/chat."""
     payload: dict = {"message": message, "max_results": max_results}
     if session_id:

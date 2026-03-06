@@ -1,11 +1,10 @@
 """Tests for Review model."""
 
 import pytest
-from decimal import Decimal
 from datetime import date
 from sqlalchemy.exc import IntegrityError
 
-from app.models import Product, Review
+from app.models import Review
 
 
 def test_review_creation(db_session, sample_product):

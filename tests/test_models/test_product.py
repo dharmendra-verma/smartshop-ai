@@ -96,12 +96,28 @@ def test_product_repr(sample_product):
 def test_product_query_by_category(db_session):
     """Test querying products by category."""
     for i in range(3):
-        db_session.add(Product(id=f"EL{i:04d}", name=f"Electronics {i}", price=Decimal("10.00"), category="Electronics"))
+        db_session.add(
+            Product(
+                id=f"EL{i:04d}",
+                name=f"Electronics {i}",
+                price=Decimal("10.00"),
+                category="Electronics",
+            )
+        )
     for i in range(2):
-        db_session.add(Product(id=f"CL{i:04d}", name=f"Clothing {i}", price=Decimal("20.00"), category="Clothing"))
+        db_session.add(
+            Product(
+                id=f"CL{i:04d}",
+                name=f"Clothing {i}",
+                price=Decimal("20.00"),
+                category="Clothing",
+            )
+        )
     db_session.commit()
 
-    electronics = db_session.query(Product).filter(Product.category == "Electronics").all()
+    electronics = (
+        db_session.query(Product).filter(Product.category == "Electronics").all()
+    )
     assert len(electronics) == 3
 
     clothing = db_session.query(Product).filter(Product.category == "Clothing").all()
@@ -110,9 +126,33 @@ def test_product_query_by_category(db_session):
 
 def test_product_query_by_brand(db_session):
     """Test querying products by brand."""
-    db_session.add(Product(id="P001", name="P1", price=Decimal("10.00"), category="Test", brand="BrandA"))
-    db_session.add(Product(id="P002", name="P2", price=Decimal("20.00"), category="Test", brand="BrandB"))
-    db_session.add(Product(id="P003", name="P3", price=Decimal("30.00"), category="Test", brand="BrandA"))
+    db_session.add(
+        Product(
+            id="P001",
+            name="P1",
+            price=Decimal("10.00"),
+            category="Test",
+            brand="BrandA",
+        )
+    )
+    db_session.add(
+        Product(
+            id="P002",
+            name="P2",
+            price=Decimal("20.00"),
+            category="Test",
+            brand="BrandB",
+        )
+    )
+    db_session.add(
+        Product(
+            id="P003",
+            name="P3",
+            price=Decimal("30.00"),
+            category="Test",
+            brand="BrandA",
+        )
+    )
     db_session.commit()
 
     brand_a = db_session.query(Product).filter(Product.brand == "BrandA").all()
@@ -121,7 +161,9 @@ def test_product_query_by_brand(db_session):
 
 def test_product_price_precision(db_session):
     """Test price handles decimal precision correctly."""
-    product = Product(id="PR001", name="Precise", price=Decimal("19.95"), category="Test")
+    product = Product(
+        id="PR001", name="Precise", price=Decimal("19.95"), category="Test"
+    )
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -132,7 +174,10 @@ def test_product_price_precision(db_session):
 
 def test_product_to_dict_includes_image_url():
     p = Product(
-        id="TEST001", name="Widget", price=9.99, category="gadgets",
+        id="TEST001",
+        name="Widget",
+        price=9.99,
+        category="gadgets",
         image_url="https://picsum.photos/seed/42/400/300",
     )
     d = p.to_dict()

@@ -1,6 +1,5 @@
 """Unit tests for star_rating component (pure functions — no Streamlit calls)."""
 
-import pytest
 from app.ui.components.star_rating import render_star_rating_html, star_rating_text
 
 
@@ -43,6 +42,7 @@ def test_star_rating_text_plain():
 
 # --- review_count tests (SCRUM-42) -------------------------------------------
 
+
 def test_review_count_shown_in_html():
     html = render_star_rating_html(4.0, review_count=128)
     assert "128 reviews" in html
@@ -63,7 +63,7 @@ def test_review_count_none_shows_no_count_link():
 def test_plural_reviews_label():
     html = render_star_rating_html(3.5, review_count=50)
     assert "50 reviews" in html
-    assert '50 customer reviews' in html
+    assert "50 customer reviews" in html
 
 
 def test_singular_review_label():

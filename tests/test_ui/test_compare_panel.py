@@ -1,6 +1,6 @@
 """Unit tests for compare_panel component — SCRUM-62."""
 
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
 
 PRODUCT_A = {
@@ -44,6 +44,7 @@ PRODUCT_NO_IMG = {
 def test_render_compare_panel_two_products(mock_st):
     """Panel renders without error given two valid products."""
     from app.ui.components.compare_panel import render_compare_panel
+
     render_compare_panel(PRODUCT_A, PRODUCT_B)
     assert mock_st.markdown.call_count >= 2  # header + table
 
@@ -52,6 +53,7 @@ def test_render_compare_panel_two_products(mock_st):
 def test_diff_highlighting_applied_when_values_differ(mock_st):
     """compare-row-diff class used when field values differ."""
     from app.ui.components.compare_panel import render_compare_panel
+
     render_compare_panel(PRODUCT_A, PRODUCT_B)
     table_html = mock_st.markdown.call_args_list[-1][0][0]
     assert "compare-row-diff" in table_html
@@ -61,6 +63,7 @@ def test_diff_highlighting_applied_when_values_differ(mock_st):
 def test_no_diff_class_when_values_same(mock_st):
     """compare-row class used when field values are identical."""
     from app.ui.components.compare_panel import render_compare_panel
+
     same_product = {**PRODUCT_A}
     render_compare_panel(same_product, same_product)
     table_html = mock_st.markdown.call_args_list[-1][0][0]
@@ -71,6 +74,7 @@ def test_no_diff_class_when_values_same(mock_st):
 def test_get_field_price_format(mock_st):
     """Price formatted as $XX.XX."""
     from app.ui.components.compare_panel import _get_field
+
     assert _get_field({"price": 99.99}, "price") == "$99.99"
     assert _get_field({"price": 1000}, "price") == "$1000.00"
 
@@ -79,6 +83,7 @@ def test_get_field_price_format(mock_st):
 def test_get_field_rating_stars(mock_st):
     """Rating rendered with star emoji + numeric."""
     from app.ui.components.compare_panel import _get_field
+
     result = _get_field({"rating": 4.5}, "rating")
     assert "⭐" in result
     assert "4.5" in result
@@ -88,6 +93,7 @@ def test_get_field_rating_stars(mock_st):
 def test_get_field_missing_key_returns_dash(mock_st):
     """Missing fields return dash."""
     from app.ui.components.compare_panel import _get_field
+
     assert _get_field({}, "brand") == "—"
     assert _get_field({"price": None}, "price") == "—"
 
@@ -96,6 +102,7 @@ def test_get_field_missing_key_returns_dash(mock_st):
 def test_image_row_renders_thumbnails(mock_st):
     """Image row renders <img> tags for both products."""
     from app.ui.components.compare_panel import render_compare_panel
+
     render_compare_panel(PRODUCT_A, PRODUCT_B)
     table_html = mock_st.markdown.call_args_list[-1][0][0]
     assert "compare-thumb" in table_html
@@ -107,6 +114,7 @@ def test_image_row_renders_thumbnails(mock_st):
 def test_description_field_shown(mock_st):
     """Description included in comparison table."""
     from app.ui.components.compare_panel import render_compare_panel
+
     render_compare_panel(PRODUCT_A, PRODUCT_B)
     table_html = mock_st.markdown.call_args_list[-1][0][0]
     assert "flagship phone" in table_html
@@ -117,6 +125,7 @@ def test_description_field_shown(mock_st):
 def test_compare_panel_handles_missing_image_url(mock_st):
     """Falls back to placehold.co when image_url is None."""
     from app.ui.components.compare_panel import render_compare_panel
+
     render_compare_panel(PRODUCT_A, PRODUCT_NO_IMG)
     table_html = mock_st.markdown.call_args_list[-1][0][0]
     assert "placehold.co" in table_html
@@ -126,6 +135,7 @@ def test_compare_panel_handles_missing_image_url(mock_st):
 def test_product_names_in_column_headers(mock_st):
     """Product names appear as column headers in HTML."""
     from app.ui.components.compare_panel import render_compare_panel
+
     render_compare_panel(PRODUCT_A, PRODUCT_B)
     table_html = mock_st.markdown.call_args_list[-1][0][0]
     assert "Phone Alpha" in table_html
@@ -164,6 +174,7 @@ MOCK_SUMMARY_B = {
 def test_render_compare_panel_no_ai_calls(mock_st):
     """render_compare_panel never triggers AI calls — table only."""
     from app.ui.components.compare_panel import render_compare_panel
+
     render_compare_panel(PRODUCT_A, PRODUCT_B)
     mock_st.subheader.assert_not_called()
 
@@ -189,6 +200,7 @@ def test_render_ai_comparison_fetches_summaries(mock_st, mock_summarize, mock_re
         {"success": True, "data": MOCK_SUMMARY_B, "error": None},
     ]
     from app.ui.components.compare_panel import render_ai_comparison
+
     render_ai_comparison(PRODUCT_A, PRODUCT_B, api_url="http://test:8000")
     assert mock_summarize.call_count == 2
     assert mock_render.call_count == 2
@@ -207,6 +219,7 @@ def test_review_summaries_cached_in_session_state(mock_st, mock_summarize):
     mock_col.__enter__ = lambda s: s
     mock_col.__exit__ = MagicMock(return_value=False)
     from app.ui.components.compare_panel import _fetch_review_summary
+
     result = _fetch_review_summary("http://test:8000", PRODUCT_A)
     assert result == MOCK_SUMMARY_A
     mock_summarize.assert_not_called()
@@ -218,6 +231,7 @@ def test_verdict_cached_in_session_state(mock_st, mock_chat):
     """Verdict cached — second call doesn't re-fetch."""
     mock_st.session_state = {"compare_verdict_P001_P002": "Alpha is better."}
     from app.ui.components.compare_panel import _fetch_verdict
+
     result = _fetch_verdict("http://test:8000", PRODUCT_A, PRODUCT_B)
     assert result == "Alpha is better."
     mock_chat.assert_not_called()
@@ -226,7 +240,9 @@ def test_verdict_cached_in_session_state(mock_st, mock_chat):
 @patch("app.ui.api_client.chat")
 @patch("app.ui.api_client.summarize_reviews")
 @patch("app.ui.components.compare_panel.st")
-def test_ai_comparison_shows_warnings_when_api_fails(mock_st, mock_summarize, mock_chat):
+def test_ai_comparison_shows_warnings_when_api_fails(
+    mock_st, mock_summarize, mock_chat
+):
     """render_ai_comparison shows warnings when API calls fail."""
     mock_st.session_state = {}
     mock_spinner = MagicMock()
@@ -240,6 +256,7 @@ def test_ai_comparison_shows_warnings_when_api_fails(mock_st, mock_summarize, mo
     mock_summarize.return_value = {"success": False, "data": None, "error": "fail"}
     mock_chat.return_value = {"success": False, "data": None, "error": "fail"}
     from app.ui.components.compare_panel import render_ai_comparison
+
     render_ai_comparison(PRODUCT_A, PRODUCT_B, api_url="http://test:8000")
     assert mock_st.warning.call_count >= 1
 
@@ -255,6 +272,7 @@ def test_verdict_uses_reasoning_summary(mock_st, mock_chat):
         "error": None,
     }
     from app.ui.components.compare_panel import _fetch_verdict
+
     result = _fetch_verdict("http://test:8000", PRODUCT_A, PRODUCT_B)
     assert result == "Alpha wins on camera."
 
@@ -270,6 +288,7 @@ def test_verdict_falls_back_to_answer(mock_st, mock_chat):
         "error": None,
     }
     from app.ui.components.compare_panel import _fetch_verdict
+
     result = _fetch_verdict("http://test:8000", PRODUCT_A, PRODUCT_B)
     assert result == "Beta is the better value."
 
@@ -285,6 +304,7 @@ def test_verdict_cache_key_order_independent(mock_st, mock_chat):
         "error": None,
     }
     from app.ui.components.compare_panel import _fetch_verdict
+
     _fetch_verdict("http://test:8000", PRODUCT_A, PRODUCT_B)
     # Same cache key should exist for B-vs-A
     assert "compare_verdict_P001_P002" in mock_st.session_state
@@ -304,7 +324,12 @@ def test_ai_review_summaries_uses_columns(mock_st, mock_summarize):
     mock_st.columns.return_value = (mock_col, mock_col)
     mock_col.__enter__ = lambda s: s
     mock_col.__exit__ = MagicMock(return_value=False)
-    mock_summarize.return_value = {"success": True, "data": MOCK_SUMMARY_A, "error": None}
+    mock_summarize.return_value = {
+        "success": True,
+        "data": MOCK_SUMMARY_A,
+        "error": None,
+    }
     from app.ui.components.compare_panel import _render_ai_review_summaries
+
     _render_ai_review_summaries(PRODUCT_A, PRODUCT_B, "http://test:8000")
     mock_st.columns.assert_called_with(2)

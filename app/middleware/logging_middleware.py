@@ -29,6 +29,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         response.headers["X-Process-Time-Ms"] = f"{latency_ms:.1f}"
 
         from app.core.metrics import record_latency
+
         record_latency(request.url.path, latency_ms)
 
         return response

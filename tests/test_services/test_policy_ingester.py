@@ -1,7 +1,5 @@
 """Tests for policy data ingester."""
 
-import pytest
-
 from app.models.policy import Policy
 from app.services.ingestion.policy_ingester import PolicyIngester
 
@@ -34,7 +32,7 @@ class TestPolicyIngester:
         )
 
         ingester = PolicyIngester(db_session=db_session)
-        result = ingester.run(csv_file)
+        ingester.run(csv_file)
 
         policy = db_session.query(Policy).first()
         assert policy.timeframe == 365
@@ -56,10 +54,7 @@ class TestPolicyIngester:
 
     def test_missing_fields_rejected(self, db_session, tmp_path):
         csv_file = tmp_path / "policies.csv"
-        csv_file.write_text(
-            "policy_type,description,conditions,timeframe\n"
-            ",,, \n"
-        )
+        csv_file.write_text("policy_type,description,conditions,timeframe\n" ",,, \n")
 
         ingester = PolicyIngester(db_session=db_session)
         result = ingester.run(csv_file)

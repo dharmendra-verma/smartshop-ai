@@ -86,7 +86,9 @@ async def _eval(agent, deps, judge, query, context_extras=None, min_overall=0.65
 async def test_review_summary_sony_headphones(agent, deps, judge: LLMJudge):
     """Agent should produce a balanced summary for Sony WH-1000XM5 reviews."""
     score = await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="What do customers say about the Sony WH-1000XM5 headphones?",
         context_extras={"product_id": "PROD006"},
         min_overall=0.65,
@@ -95,7 +97,9 @@ async def test_review_summary_sony_headphones(agent, deps, judge: LLMJudge):
 
 
 @pytest.mark.asyncio
-async def test_review_mentions_both_positives_and_negatives(agent, deps, judge: LLMJudge):
+async def test_review_mentions_both_positives_and_negatives(
+    agent, deps, judge: LLMJudge
+):
     """Agent should surface both pros and cons, not just praise."""
     ctx = {"deps": deps, "product_id": "PROD006"}
     result = await agent.process(
@@ -125,7 +129,9 @@ async def test_review_mentions_both_positives_and_negatives(agent, deps, judge: 
 async def test_review_addresses_battery_query(agent, deps, judge: LLMJudge):
     """When user asks about battery, summary should highlight battery-related feedback."""
     score = await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="What do reviewers say about the battery life of the Budget Phone X1?",
         context_extras={"product_id": "PROD001"},
         min_overall=0.60,

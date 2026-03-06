@@ -10,12 +10,13 @@ from app.services.session.session_store import get_session_store
 
 logger = logging.getLogger(__name__)
 
-MAX_PAIRS = 10          # keep last 10 user/assistant turns = 20 messages
+MAX_PAIRS = 10  # keep last 10 user/assistant turns = 20 messages
 CONTEXT_SEPARATOR = "\n"
 
 
 class ChatMessage:
     """Single chat message stored in session."""
+
     __slots__ = ("role", "content", "timestamp")
 
     def __init__(self, role: str, content: str, timestamp: float | None = None):
@@ -28,7 +29,9 @@ class ChatMessage:
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> "ChatMessage":
-        return cls(role=d["role"], content=d["content"], timestamp=d.get("timestamp", 0.0))
+        return cls(
+            role=d["role"], content=d["content"], timestamp=d.get("timestamp", 0.0)
+        )
 
 
 class SessionManager:
@@ -73,7 +76,7 @@ class SessionManager:
 
         # Enforce MAX_PAIRS: keep only the last MAX_PAIRS * 2 messages
         if len(messages) > MAX_PAIRS * 2:
-            messages = messages[-(MAX_PAIRS * 2):]
+            messages = messages[-(MAX_PAIRS * 2) :]
 
         self._save_messages(session_id, messages)
 

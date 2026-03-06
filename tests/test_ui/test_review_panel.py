@@ -1,8 +1,7 @@
 """Unit tests for inline review panel component (SCRUM-61)."""
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
-import pytest
 from app.ui.components.review_panel import _SENTIMENT_BADGE, _render_single_review
 
 
@@ -28,7 +27,12 @@ class TestRenderSingleReview:
 
     @patch("app.ui.components.review_panel.st.markdown")
     def test_contains_rating_stars(self, mock_md):
-        review = {"rating": 4.5, "sentiment": "positive", "review_date": "2025-01-15", "text": "Awesome!"}
+        review = {
+            "rating": 4.5,
+            "sentiment": "positive",
+            "review_date": "2025-01-15",
+            "text": "Awesome!",
+        }
         _render_single_review(review)
         call_args = mock_md.call_args[0][0]
         assert "star-rating" in call_args
@@ -43,7 +47,12 @@ class TestRenderSingleReview:
 
     @patch("app.ui.components.review_panel.st.markdown")
     def test_renders_sentiment_badge(self, mock_md):
-        review = {"rating": 2.0, "sentiment": "negative", "review_date": "2025-03-01", "text": "Bad"}
+        review = {
+            "rating": 2.0,
+            "sentiment": "negative",
+            "review_date": "2025-03-01",
+            "text": "Bad",
+        }
         _render_single_review(review)
         call_args = mock_md.call_args[0][0]
         assert "Negative" in call_args
@@ -51,7 +60,12 @@ class TestRenderSingleReview:
 
     @patch("app.ui.components.review_panel.st.markdown")
     def test_renders_date(self, mock_md):
-        review = {"rating": 5.0, "sentiment": "positive", "review_date": "2025-06-20", "text": "Perfect"}
+        review = {
+            "rating": 5.0,
+            "sentiment": "positive",
+            "review_date": "2025-06-20",
+            "text": "Perfect",
+        }
         _render_single_review(review)
         call_args = mock_md.call_args[0][0]
         assert "2025-06-20" in call_args

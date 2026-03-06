@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 class AgentResponse(BaseModel):
     """Standard agent response format."""
+
     success: bool
     data: Dict[str, Any]
     error: str | None = None

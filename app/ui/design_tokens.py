@@ -1,12 +1,12 @@
 """SmartShop AI design tokens & global CSS."""
 
 # --- Colour palette -----------------------------------------------------------
-COLOR_BRAND_PRIMARY   = "#1f77b4"
+COLOR_BRAND_PRIMARY = "#1f77b4"
 COLOR_BRAND_SECONDARY = "#ff7f0e"
-COLOR_SUCCESS         = "#2ca02c"
-COLOR_WARNING         = "#d62728"
-COLOR_NEUTRAL_DARK    = "#1a1a2e"
-COLOR_NEUTRAL_LIGHT   = "#f0f4f8"
+COLOR_SUCCESS = "#2ca02c"
+COLOR_WARNING = "#d62728"
+COLOR_NEUTRAL_DARK = "#1a1a2e"
+COLOR_NEUTRAL_LIGHT = "#f0f4f8"
 
 # --- Typography ---------------------------------------------------------------
 FONT_SIZE_H1 = "2.4rem"
@@ -232,13 +232,14 @@ button:focus-visible, a:focus-visible {{
 """
 
 
-def render_empty_state(icon: str = "🔍", message: str = "No results found.",
-                        hint: str = "") -> str:
+def render_empty_state(
+    icon: str = "🔍", message: str = "No results found.", hint: str = ""
+) -> str:
     """Return an HTML empty-state block."""
     hint_html = f'<p style="font-size:0.85rem;color:#aaa;">{hint}</p>' if hint else ""
     return (
         f'<div class="empty-state">'
         f'<div style="font-size:3rem;">{icon}</div>'
-        f'<p>{message}</p>{hint_html}'
-        f'</div>'
+        f"<p>{message}</p>{hint_html}"
+        f"</div>"
     )

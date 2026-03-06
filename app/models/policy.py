@@ -16,12 +16,12 @@ class Policy(Base):
     description = Column(Text, nullable=False)
     conditions = Column(Text, nullable=False)
     timeframe = Column(Integer, nullable=False, default=0)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
-    __table_args__ = (
-        Index("idx_policy_type_timeframe", "policy_type", "timeframe"),
-    )
+    __table_args__ = (Index("idx_policy_type_timeframe", "policy_type", "timeframe"),)
 
     def __repr__(self) -> str:
         return f"<Policy(policy_id={self.policy_id}, policy_type='{self.policy_type}')>"

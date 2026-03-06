@@ -41,10 +41,14 @@ def render_review_panel(product: dict, api_url: str) -> None:
             unsafe_allow_html=True,
         )
     with col_close:
+
         def _close_panel():
             st.session_state["selected_review_product_id"] = None
             st.session_state["review_panel_offset"] = 0
-        st.button("Close Reviews", key=f"close_reviews_{product_id}", on_click=_close_panel)
+
+        st.button(
+            "Close Reviews", key=f"close_reviews_{product_id}", on_click=_close_panel
+        )
 
     # AI Summarize button
     summary_cache_key = f"review_summary_{product_id}"
@@ -57,6 +61,7 @@ def render_review_panel(product: dict, api_url: str) -> None:
         ):
             with st.spinner("Asking AI to summarise all reviews..."):
                 from app.ui.api_client import summarize_reviews
+
                 result = summarize_reviews(
                     api_url,
                     query=f"Summarize customer reviews for {product_name}",
@@ -83,6 +88,7 @@ def render_review_panel(product: dict, api_url: str) -> None:
 
     # Raw reviews list
     from app.ui.api_client import get_product_reviews
+
     result = get_product_reviews(api_url, product_id, limit=REVIEWS_PAGE_SIZE, offset=0)
 
     if not result["success"]:
@@ -116,8 +122,10 @@ def render_review_panel(product: dict, api_url: str) -> None:
             ):
                 next_offset = len(current_reviews)
                 more = get_product_reviews(
-                    api_url, product_id,
-                    limit=REVIEWS_PAGE_SIZE, offset=next_offset,
+                    api_url,
+                    product_id,
+                    limit=REVIEWS_PAGE_SIZE,
+                    offset=next_offset,
                 )
                 if more["success"]:
                     st.session_state[loaded_key].extend(more["data"]["reviews"])
@@ -142,7 +150,7 @@ def _render_single_review(review: dict) -> None:
     st.markdown(
         f'<div class="review-card">'
         f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">'
-        f'{stars_html}&nbsp;{badge_html}'
+        f"{stars_html}&nbsp;{badge_html}"
         f'<span style="color:#aaa;font-size:0.8rem;margin-left:auto;">{date_str}</span>'
         f"</div>"
         f'<p style="margin:0;font-size:0.9rem;color:#333;">{text}</p>'

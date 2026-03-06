@@ -1,4 +1,5 @@
 """LLM-based intent classifier with structured output."""
+
 import logging
 from dataclasses import dataclass
 from typing import Optional
@@ -22,18 +23,21 @@ CLASSIFIER_PROMPT = """Classify user queries for a shopping assistant into one o
 Extract entities: product_name, category, max_price (USD float), min_price (USD float).
 Be accurate and concise."""
 
+
 @dataclass
 class _ClassifierDeps:
     pass
 
+
 class _IntentResult(BaseModel):
-    intent:       IntentType
-    confidence:   float = Field(ge=0.0, le=1.0)
+    intent: IntentType
+    confidence: float = Field(ge=0.0, le=1.0)
     product_name: Optional[str] = None
-    category:     Optional[str] = None
-    max_price:    Optional[float] = None
-    min_price:    Optional[float] = None
-    reasoning:    str = Field(description="One-sentence explanation")
+    category: Optional[str] = None
+    max_price: Optional[float] = None
+    min_price: Optional[float] = None
+    reasoning: str = Field(description="One-sentence explanation")
+
 
 class IntentClassifier:
     """Classifies intent using GPT-4o-mini. Falls back to GENERAL on any failure."""
@@ -49,10 +53,20 @@ class IntentClassifier:
 
     async def classify(self, query: str) -> _IntentResult:
         try:
-            result = await self._agent.run(query, deps=_ClassifierDeps(), usage_limits=UsageLimits(request_limit=5))
-            logger.info("Intent: '%s' → %s (%.2f)", query[:60], result.output.intent, result.output.confidence)
+            result = await self._agent.run(
+                query, deps=_ClassifierDeps(), usage_limits=UsageLimits(request_limit=5)
+            )
+            logger.info(
+                "Intent: '%s' → %s (%.2f)",
+                query[:60],
+                result.output.intent,
+                result.output.confidence,
+            )
             return result.output
         except Exception as exc:
             logger.error("IntentClassifier failed: %s — defaulting to GENERAL", exc)
-            return _IntentResult(intent=IntentType.GENERAL, confidence=0.0,
-                                 reasoning=f"Classification failed: {exc}")
+            return _IntentResult(
+                intent=IntentType.GENERAL,
+                confidence=0.0,
+                reasoning=f"Classification failed: {exc}",
+            )

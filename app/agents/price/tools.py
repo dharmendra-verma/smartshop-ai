@@ -26,10 +26,7 @@ async def search_products_by_name(
     """
     db = ctx.deps.db
     products = (
-        db.query(Product)
-        .filter(Product.name.ilike(f"%{name}%"))
-        .limit(limit)
-        .all()
+        db.query(Product).filter(Product.name.ilike(f"%{name}%")).limit(limit).all()
     )
     if not products:
         # Fallback: search by brand
@@ -80,7 +77,11 @@ async def get_competitor_prices(
     best_source = min(all_prices, key=all_prices.get)
     best_price = all_prices[best_source]
     savings_vs_highest = max(all_prices.values()) - best_price
-    savings_pct = (savings_vs_highest / max(all_prices.values())) * 100 if savings_vs_highest > 0 else 0.0
+    savings_pct = (
+        (savings_vs_highest / max(all_prices.values())) * 100
+        if savings_vs_highest > 0
+        else 0.0
+    )
 
     result = {
         "product_id": product_id,

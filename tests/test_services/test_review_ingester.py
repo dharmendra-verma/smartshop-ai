@@ -2,7 +2,6 @@
 
 import pytest
 from decimal import Decimal
-from datetime import date
 
 from app.models.product import Product
 from app.models.review import Review
@@ -64,10 +63,7 @@ class TestReviewIngester:
 
     def test_invalid_product_id_rejected(self, db_session, tmp_path, products_in_db):
         csv_file = tmp_path / "reviews.csv"
-        csv_file.write_text(
-            "product_id,rating,text\n"
-            "INVALID999,5,No such product\n"
-        )
+        csv_file.write_text("product_id,rating,text\n" "INVALID999,5,No such product\n")
 
         ingester = ReviewIngester(db_session=db_session)
         result = ingester.run(csv_file)
@@ -75,7 +71,9 @@ class TestReviewIngester:
         assert result.failed == 1
         assert result.successful == 0
 
-    def test_deduplication_by_product_and_text(self, db_session, tmp_path, products_in_db):
+    def test_deduplication_by_product_and_text(
+        self, db_session, tmp_path, products_in_db
+    ):
         csv_file = tmp_path / "reviews.csv"
         csv_file.write_text(
             "product_id,rating,text\n"
@@ -92,10 +90,7 @@ class TestReviewIngester:
 
     def test_handles_missing_review_text(self, db_session, tmp_path, products_in_db):
         csv_file = tmp_path / "reviews.csv"
-        csv_file.write_text(
-            "product_id,rating\n"
-            "SP0001,4\n"
-        )
+        csv_file.write_text("product_id,rating\n" "SP0001,4\n")
 
         ingester = ReviewIngester(db_session=db_session)
         result = ingester.run(csv_file)
@@ -107,8 +102,7 @@ class TestReviewIngester:
     def test_column_mapping(self, db_session, tmp_path, products_in_db):
         csv_file = tmp_path / "reviews.csv"
         csv_file.write_text(
-            "product_id,star_rating,review_body\n"
-            "SP0001,5,Amazing!\n"
+            "product_id,star_rating,review_body\n" "SP0001,5,Amazing!\n"
         )
 
         ingester = ReviewIngester(db_session=db_session)

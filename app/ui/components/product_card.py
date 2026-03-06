@@ -45,9 +45,13 @@ def _build_card_html(product: dict) -> str:
     stock = product.get("stock")
     if stock is not None:
         if stock > 10:
-            parts.append(f'<div class="card-row stock-badge-ok">✅ In Stock ({stock})</div>')
+            parts.append(
+                f'<div class="card-row stock-badge-ok">✅ In Stock ({stock})</div>'
+            )
         elif stock > 0:
-            parts.append(f'<div class="card-row stock-badge-low">⚠️ Low Stock ({stock})</div>')
+            parts.append(
+                f'<div class="card-row stock-badge-low">⚠️ Low Stock ({stock})</div>'
+            )
         else:
             parts.append('<div class="card-row stock-badge-out">❌ Out of Stock</div>')
 
@@ -107,9 +111,13 @@ def render_product_card(product: dict) -> None:
         # Clickable reviews button (SCRUM-61)
         review_count = product.get("review_count", 0)
         if review_count and review_count > 0:
-            is_selected = st.session_state.get("selected_review_product_id") == product_id
+            is_selected = (
+                st.session_state.get("selected_review_product_id") == product_id
+            )
             plural = "s" if review_count != 1 else ""
-            btn_label = f"{'Open' if not is_selected else 'Hide'} {review_count} review{plural}"
+            btn_label = (
+                f"{'Open' if not is_selected else 'Hide'} {review_count} review{plural}"
+            )
             btn_style = "primary" if is_selected else "secondary"
 
             def _toggle_reviews(pid=product_id, currently_selected=is_selected):
@@ -120,8 +128,13 @@ def render_product_card(product: dict) -> None:
                     st.session_state["selected_review_product_id"] = pid
                     st.session_state.pop(f"review_loaded_{pid}", None)
 
-            st.button(btn_label, key=f"show_reviews_{product_id}", type=btn_style,
-                      use_container_width=True, on_click=_toggle_reviews)
+            st.button(
+                btn_label,
+                key=f"show_reviews_{product_id}",
+                type=btn_style,
+                use_container_width=True,
+                on_click=_toggle_reviews,
+            )
         else:
             st.caption("No reviews yet")
 

@@ -1,5 +1,9 @@
 """FAISS vector store for store policies."""
-import json, logging, numpy as np
+
+import json
+import logging
+
+import numpy as np
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Optional
@@ -9,8 +13,9 @@ from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 FAISS_INDEX_PATH = Path("./data/embeddings/faiss_index.bin")
-FAISS_META_PATH  = Path("./data/embeddings/faiss_metadata.json")
+FAISS_META_PATH = Path("./data/embeddings/faiss_metadata.json")
 TOP_K = 3
+
 
 @dataclass
 class PolicyChunk:
@@ -21,12 +26,13 @@ class PolicyChunk:
     description: str
     conditions: str
 
+
 class PolicyVectorStore:
     def __init__(self):
         s = get_settings()
         self._client = OpenAI(api_key=s.OPENAI_API_KEY)
-        self._model  = s.EMBEDDING_MODEL       # "text-embedding-3-small"
-        self._dim    = s.EMBEDDING_DIMENSION   # 1536
+        self._model = s.EMBEDDING_MODEL  # "text-embedding-3-small"
+        self._dim = s.EMBEDDING_DIMENSION  # 1536
         self._index: Optional[faiss.IndexFlatIP] = None
         self._metadata: list[dict] = []
 
@@ -35,12 +41,17 @@ class PolicyVectorStore:
         if not policies:
             return
         texts = [self._to_text(p) for p in policies]
-        vecs  = self._embed_batch(texts)
+        vecs = self._embed_batch(texts)
         self._index = faiss.IndexFlatIP(self._dim)
         self._index.add(vecs)
         self._metadata = [
-            {"policy_id": p.policy_id, "policy_type": p.policy_type,
-             "text": texts[i], "description": p.description, "conditions": p.conditions}
+            {
+                "policy_id": p.policy_id,
+                "policy_type": p.policy_type,
+                "text": texts[i],
+                "description": p.description,
+                "conditions": p.conditions,
+            }
             for i, p in enumerate(policies)
         ]
         self._save()
@@ -50,21 +61,31 @@ class PolicyVectorStore:
         if FAISS_INDEX_PATH.exists() and FAISS_META_PATH.exists():
             meta = json.loads(FAISS_META_PATH.read_text())
             if len(meta) == len(policies):
-                self._load(); return
+                self._load()
+                return
         self.build(policies)
 
     # ── Search ────────────────────────────────────────────────────────
     def search(self, query: str, k: int = TOP_K) -> list[PolicyChunk]:
         if self._index is None or self._index.ntotal == 0:
             return []
-        q   = self._embed_batch([query])
+        q = self._embed_batch([query])
         scores, idxs = self._index.search(q, min(k, self._index.ntotal))
         results = []
         for score, idx in zip(scores[0], idxs[0]):
-            if idx < 0: continue
+            if idx < 0:
+                continue
             m = self._metadata[idx]
-            results.append(PolicyChunk(policy_id=m["policy_id"], policy_type=m["policy_type"],
-                text=m["text"], score=float(score), description=m["description"], conditions=m["conditions"]))
+            results.append(
+                PolicyChunk(
+                    policy_id=m["policy_id"],
+                    policy_type=m["policy_type"],
+                    text=m["text"],
+                    score=float(score),
+                    description=m["description"],
+                    conditions=m["conditions"],
+                )
+            )
         return results
 
     # ── Private ───────────────────────────────────────────────────────
@@ -84,6 +105,8 @@ class PolicyVectorStore:
         FAISS_META_PATH.write_text(json.dumps(self._metadata))
 
     def _load(self):
-        self._index    = faiss.read_index(str(FAISS_INDEX_PATH))
+        self._index = faiss.read_index(str(FAISS_INDEX_PATH))
         self._metadata = json.loads(FAISS_META_PATH.read_text())
-        logger.info("PolicyVectorStore: loaded %d policies from disk", len(self._metadata))
+        logger.info(
+            "PolicyVectorStore: loaded %d policies from disk", len(self._metadata)
+        )

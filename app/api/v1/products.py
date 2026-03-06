@@ -18,9 +18,9 @@ router = APIRouter(prefix="/api/v1/products", tags=["products"])
 @router.get("/categories", response_model=list[str])
 def list_categories(db: Session = Depends(get_db)):
     """Return sorted list of distinct product categories."""
-    rows = db.query(distinct(Product.category)).filter(
-        Product.category.isnot(None)
-    ).all()
+    rows = (
+        db.query(distinct(Product.category)).filter(Product.category.isnot(None)).all()
+    )
     return sorted(r[0] for r in rows if r[0])
 
 
@@ -44,20 +44,24 @@ def list_products(
     if category:
         query = query.filter(Product.category.ilike(f"%{category}%"))
     if brand:
-        query = query.filter(or_(
-            Product.brand.ilike(f"%{brand}%"),
-            Product.name.ilike(f"%{brand}%"),
-        ))
+        query = query.filter(
+            or_(
+                Product.brand.ilike(f"%{brand}%"),
+                Product.name.ilike(f"%{brand}%"),
+            )
+        )
 
     # Count total distinct products (not rows)
     count_query = db.query(Product)
     if category:
         count_query = count_query.filter(Product.category.ilike(f"%{category}%"))
     if brand:
-        count_query = count_query.filter(or_(
-            Product.brand.ilike(f"%{brand}%"),
-            Product.name.ilike(f"%{brand}%"),
-        ))
+        count_query = count_query.filter(
+            or_(
+                Product.brand.ilike(f"%{brand}%"),
+                Product.name.ilike(f"%{brand}%"),
+            )
+        )
     total = count_query.count()
 
     pages = (total + page_size - 1) // page_size

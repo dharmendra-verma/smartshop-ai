@@ -8,6 +8,7 @@ from typing import Optional
 
 class ProductResponse(BaseModel):
     """Single product API response schema."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: str
@@ -25,6 +26,7 @@ class ProductResponse(BaseModel):
 
 class ProductListResponse(BaseModel):
     """Paginated product list response."""
+
     items: list[ProductResponse]
     total: int
     page: int

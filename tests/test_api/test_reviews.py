@@ -21,15 +21,22 @@ SAMPLE_REVIEW_DATA = {
     "sentiment_score": 0.78,
     "average_rating": 4.1,
     "rating_distribution": {
-        "five_star": 60, "four_star": 50, "three_star": 20,
-        "two_star": 8, "one_star": 4,
+        "five_star": 60,
+        "four_star": 50,
+        "three_star": 20,
+        "two_star": 8,
+        "one_star": 4,
     },
     "positive_themes": [
         {"theme": "Battery life", "confidence": 0.88, "example_quote": "Lasts 2 days!"},
         {"theme": "Value for money", "confidence": 0.82, "example_quote": None},
     ],
     "negative_themes": [
-        {"theme": "Camera quality", "confidence": 0.71, "example_quote": "Blurry in low light"},
+        {
+            "theme": "Camera quality",
+            "confidence": 0.71,
+            "example_quote": "Blurry in low light",
+        },
     ],
     "overall_summary": "Customers love the battery but find the camera mediocre.",
     "cached": False,
@@ -77,9 +84,17 @@ class TestReviewsSummarizeEndpoint:
             )
         data = resp.json()
         required = (
-            "product_id", "product_name", "total_reviews", "sentiment_score",
-            "average_rating", "rating_distribution", "positive_themes",
-            "negative_themes", "overall_summary", "cached", "agent",
+            "product_id",
+            "product_name",
+            "total_reviews",
+            "sentiment_score",
+            "average_rating",
+            "rating_distribution",
+            "positive_themes",
+            "negative_themes",
+            "overall_summary",
+            "cached",
+            "agent",
         )
         for field in required:
             assert field in data, f"Missing: {field}"
@@ -146,7 +161,7 @@ class TestReviewsSummarizeEndpoint:
 
 # ---------- GET /api/v1/reviews/{product_id} (SCRUM-61) ----------
 
-from datetime import date
+from datetime import date  # noqa: E402
 
 
 def _make_mock_product(product_id="PROD001", name="Test Phone", rating=4.2):
@@ -158,8 +173,14 @@ def _make_mock_product(product_id="PROD001", name="Test Phone", rating=4.2):
     return p
 
 
-def _make_mock_review(review_id=1, product_id="PROD001", rating=4.0,
-                      text="Great!", sentiment="positive", review_date=None):
+def _make_mock_review(
+    review_id=1,
+    product_id="PROD001",
+    rating=4.0,
+    text="Great!",
+    sentiment="positive",
+    review_date=None,
+):
     """Create a mock Review ORM object with to_dict()."""
     r = MagicMock()
     r.review_id = review_id
@@ -217,7 +238,9 @@ class TestListProductReviews:
 
         review_query = mock_db.query.return_value.filter.return_value
         review_query.order_by.return_value.count.return_value = 0
-        review_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = []
+        review_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = (
+            []
+        )
 
         app.dependency_overrides[get_db] = lambda: mock_db
         resp = client.get("/api/v1/reviews/PROD001")
@@ -233,7 +256,9 @@ class TestListProductReviews:
 
         review_query = mock_db.query.return_value.filter.return_value
         review_query.order_by.return_value.count.return_value = 0
-        review_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = []
+        review_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = (
+            []
+        )
 
         app.dependency_overrides[get_db] = lambda: mock_db
         resp = client.get("/api/v1/reviews/PROD001?limit=5")
@@ -247,7 +272,9 @@ class TestListProductReviews:
 
         review_query = mock_db.query.return_value.filter.return_value
         review_query.order_by.return_value.count.return_value = 0
-        review_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = []
+        review_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = (
+            []
+        )
 
         app.dependency_overrides[get_db] = lambda: mock_db
         resp = client.get("/api/v1/reviews/PROD001?offset=10")
@@ -261,7 +288,9 @@ class TestListProductReviews:
 
         review_query = mock_db.query.return_value.filter.return_value
         review_query.order_by.return_value.count.return_value = 42
-        review_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = []
+        review_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = (
+            []
+        )
 
         app.dependency_overrides[get_db] = lambda: mock_db
         resp = client.get("/api/v1/reviews/PROD001")
@@ -277,7 +306,9 @@ class TestListProductReviews:
 
         review_query = mock_db.query.return_value.filter.return_value
         review_query.order_by.return_value.count.return_value = 0
-        review_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = []
+        review_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = (
+            []
+        )
 
         app.dependency_overrides[get_db] = lambda: mock_db
         resp = client.get("/api/v1/reviews/PROD001")

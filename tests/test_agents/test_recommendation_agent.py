@@ -15,16 +15,20 @@ def make_mock_db(products: list[dict] | None = None):
     """Create a mock SQLAlchemy session with optional product data."""
     db = MagicMock()
     mock_products = []
-    for p in (products or []):
+    for p in products or []:
         mock_product = MagicMock()
         for key, val in p.items():
             setattr(mock_product, key, val)
         mock_product.to_dict.return_value = p
         mock_products.append(mock_product)
 
-    db.query.return_value.filter.return_value.filter.return_value = db.query.return_value
+    db.query.return_value.filter.return_value.filter.return_value = (
+        db.query.return_value
+    )
     db.query.return_value.filter.return_value = db.query.return_value
-    db.query.return_value.order_by.return_value.limit.return_value.all.return_value = mock_products
+    db.query.return_value.order_by.return_value.limit.return_value.all.return_value = (
+        mock_products
+    )
     db.query.return_value.limit.return_value.all.return_value = mock_products
     db.query.return_value.all.return_value = mock_products
     if mock_products:
@@ -36,16 +40,28 @@ def make_mock_db(products: list[dict] | None = None):
 
 SAMPLE_PRODUCTS = [
     {
-        "id": "PROD001", "name": "Budget Phone X1", "price": Decimal("299.99"),
-        "brand": "TechCo", "category": "smartphones", "stock": 50,
-        "rating": 4.2, "description": "Affordable smartphone",
-        "created_at": None, "updated_at": None,
+        "id": "PROD001",
+        "name": "Budget Phone X1",
+        "price": Decimal("299.99"),
+        "brand": "TechCo",
+        "category": "smartphones",
+        "stock": 50,
+        "rating": 4.2,
+        "description": "Affordable smartphone",
+        "created_at": None,
+        "updated_at": None,
     },
     {
-        "id": "PROD002", "name": "Premium Phone Y2", "price": Decimal("799.99"),
-        "brand": "PremiumBrand", "category": "smartphones", "stock": 20,
-        "rating": 4.8, "description": "High-end smartphone",
-        "created_at": None, "updated_at": None,
+        "id": "PROD002",
+        "name": "Premium Phone Y2",
+        "price": Decimal("799.99"),
+        "brand": "PremiumBrand",
+        "category": "smartphones",
+        "stock": 20,
+        "rating": 4.8,
+        "description": "High-end smartphone",
+        "created_at": None,
+        "updated_at": None,
     },
 ]
 
@@ -156,7 +172,9 @@ class TestRecommendationTools:
 
         db = MagicMock()
         db.query.return_value.filter.return_value.all.return_value = [
-            ("smartphones",), ("electronics",), ("laptops",)
+            ("smartphones",),
+            ("electronics",),
+            ("laptops",),
         ]
         deps = AgentDependencies(db=db, settings=get_settings())
 
@@ -170,39 +188,55 @@ class TestRecommendationTools:
 class TestRecommendationSchemas:
     def test_request_schema_valid(self):
         from app.schemas.recommendation import RecommendationRequest
-        req = RecommendationRequest(query="phones under $300", max_results=3, max_price=300.0)
+
+        req = RecommendationRequest(
+            query="phones under $300", max_results=3, max_price=300.0
+        )
         assert req.max_results == 3
         assert req.max_price == 300.0
 
     def test_request_schema_defaults(self):
         from app.schemas.recommendation import RecommendationRequest
+
         req = RecommendationRequest(query="phones")
         assert req.max_results == 5
         assert req.max_price is None
 
     def test_request_schema_query_too_short(self):
         from app.schemas.recommendation import RecommendationRequest
+
         with pytest.raises(ValidationError):
             RecommendationRequest(query="ab")
 
     def test_product_recommendation_schema(self):
         from app.schemas.recommendation import ProductRecommendation
+
         rec = ProductRecommendation(
-            id="P1", name="Test Phone", price=Decimal("299.99"),
-            category="smartphones", relevance_score=0.9,
-            reason="Great value for money"
+            id="P1",
+            name="Test Phone",
+            price=Decimal("299.99"),
+            category="smartphones",
+            relevance_score=0.9,
+            reason="Great value for money",
         )
         assert rec.relevance_score == 0.9
 
     def test_response_schema(self):
-        from app.schemas.recommendation import RecommendationResponse, ProductRecommendation
+        from app.schemas.recommendation import (
+            RecommendationResponse,
+            ProductRecommendation,
+        )
+
         resp = RecommendationResponse(
             query="phones",
             recommendations=[
                 ProductRecommendation(
-                    id="P1", name="Phone", price=Decimal("299.99"),
-                    category="smartphones", relevance_score=0.8,
-                    reason="Good match"
+                    id="P1",
+                    name="Phone",
+                    price=Decimal("299.99"),
+                    category="smartphones",
+                    relevance_score=0.8,
+                    reason="Good match",
                 )
             ],
             total_found=1,

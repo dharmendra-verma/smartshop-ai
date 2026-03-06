@@ -74,8 +74,11 @@ class RedisCache:
     Same interface as TTLCache so agent code works unchanged.
     """
 
-    def __init__(self, redis_url: str, default_ttl: int = 3600, key_prefix: str = "smartshop:"):
+    def __init__(
+        self, redis_url: str, default_ttl: int = 3600, key_prefix: str = "smartshop:"
+    ):
         import redis as _redis
+
         self._client = _redis.Redis.from_url(redis_url, decode_responses=True)
         self._default_ttl = default_ttl
         self._key_prefix = key_prefix
@@ -140,6 +143,7 @@ def get_review_cache() -> TTLCache | RedisCache:
         return _review_cache
 
     from app.core.config import get_settings
+
     settings = get_settings()
 
     try:

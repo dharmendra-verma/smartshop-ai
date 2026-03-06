@@ -80,7 +80,9 @@ async def _eval(agent, deps, judge, query, context_extras=None, min_overall=0.65
 async def test_recommendation_budget_smartphones(agent, deps, judge: LLMJudge):
     """Agent should recommend smartphones within the specified budget."""
     await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="Find me budget smartphones under $300",
         context_extras={"max_price": 300.0, "category": "smartphones"},
         min_overall=0.65,
@@ -91,7 +93,9 @@ async def test_recommendation_budget_smartphones(agent, deps, judge: LLMJudge):
 async def test_recommendation_college_laptop(agent, deps, judge: LLMJudge):
     """Agent should recommend suitable laptops for a college student use case."""
     await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="What is a good laptop for a college student on a budget?",
         context_extras={"category": "laptops"},
         min_overall=0.65,
@@ -102,7 +106,9 @@ async def test_recommendation_college_laptop(agent, deps, judge: LLMJudge):
 async def test_recommendation_premium_headphones(agent, deps, judge: LLMJudge):
     """Agent should recommend high-end headphones when quality is the priority."""
     await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="I want the best noise-cancelling headphones available, price is not a concern",
         context_extras={"category": "headphones"},
         min_overall=0.65,
@@ -113,7 +119,9 @@ async def test_recommendation_premium_headphones(agent, deps, judge: LLMJudge):
 async def test_recommendation_provides_reasoning(agent, deps, judge: LLMJudge):
     """Agent reasoning quality should be strong — it should explain why products match."""
     ctx = {"deps": deps, "max_results": 3}
-    result = await agent.process("Recommend smartphones with the best camera", context=ctx)
+    result = await agent.process(
+        "Recommend smartphones with the best camera", context=ctx
+    )
     response_text = format_agent_response(result, "recommendation")
 
     print(f"\nResponse:\n{response_text}")
@@ -137,14 +145,16 @@ async def test_recommendation_provides_reasoning(agent, deps, judge: LLMJudge):
 async def test_recommendation_relevance_to_query(agent, deps, judge: LLMJudge):
     """Response relevance should be high for a well-specified query."""
     score = await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="Show me headphones under $100",
         context_extras={"category": "headphones", "max_price": 100.0},
         min_overall=0.60,
     )
-    assert score.relevance >= 0.60, (
-        f"Relevance too low: {score.relevance:.2f}\nExplanation: {score.explanation}"
-    )
+    assert (
+        score.relevance >= 0.60
+    ), f"Relevance too low: {score.relevance:.2f}\nExplanation: {score.explanation}"
 
 
 # ---------------------------------------------------------------------------
@@ -156,7 +166,9 @@ async def test_recommendation_relevance_to_query(agent, deps, judge: LLMJudge):
 async def test_recommendation_comparison_mode(agent, deps, judge: LLMJudge):
     """In comparison mode, agent should compare multiple products side-by-side."""
     score = await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="Compare the best budget and premium smartphones",
         context_extras={"compare_mode": True, "category": "smartphones"},
         min_overall=0.60,
@@ -229,6 +241,6 @@ async def test_recommendation_response_consistency(agent, deps, judge: LLMJudge)
 
     # Both runs should be above minimum quality
     for i, s in enumerate(scores):
-        assert s.overall >= 0.55, (
-            f"Consistency run {i+1} quality too low: {s.overall:.2f}"
-        )
+        assert (
+            s.overall >= 0.55
+        ), f"Consistency run {i+1} quality too low: {s.overall:.2f}"

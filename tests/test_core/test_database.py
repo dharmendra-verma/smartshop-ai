@@ -4,7 +4,14 @@ import pytest
 from sqlalchemy import create_engine, inspect
 from unittest.mock import patch
 
-from app.core.database import Base, get_engine, get_session_factory, create_tables, drop_tables, reset_engine
+from app.core.database import (
+    Base,
+    get_engine,
+    get_session_factory,
+    create_tables,
+    drop_tables,
+    reset_engine,
+)
 from app.models import Product, Review, Policy  # noqa: F401 - register models
 
 

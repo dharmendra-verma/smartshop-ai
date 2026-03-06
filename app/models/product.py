@@ -20,7 +20,9 @@ class Product(Base):
     stock = Column(Integer, nullable=True, default=0)
     rating = Column(Float, nullable=True)
     image_url = Column(String(500), nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
 
     __table_args__ = (

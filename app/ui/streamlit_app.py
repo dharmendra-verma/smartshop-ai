@@ -8,9 +8,9 @@ _project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
-import streamlit as st
+import streamlit as st  # noqa: E402
 
-from app.ui.api_client import (
+from app.ui.api_client import (  # noqa: E402
     health_check,
     get_categories,
     get_recommendations,
@@ -18,13 +18,9 @@ from app.ui.api_client import (
     search_products,
     compare_prices,
 )
-from app.ui.components.product_card import render_product_grid
-from app.ui.components.review_display import render_review_summary
-from app.ui.components.chat_helpers import (
-    format_recommendation_message,
-    format_review_message,
-)
-from app.ui.components.floating_chat import render_floating_chat_widget
+from app.ui.components.product_card import render_product_grid  # noqa: E402
+from app.ui.components.review_display import render_review_summary  # noqa: E402
+from app.ui.components.floating_chat import render_floating_chat_widget  # noqa: E402
 
 # -- Config --------------------------------------------------------------------
 st.set_page_config(
@@ -34,7 +30,8 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-from app.ui.design_tokens import get_global_css
+from app.ui.design_tokens import get_global_css  # noqa: E402
+
 st.markdown(get_global_css(), unsafe_allow_html=True)
 
 # -- Sidebar -------------------------------------------------------------------
@@ -67,9 +64,10 @@ with st.sidebar:
         st.caption(f"Ensure FastAPI is running at {api_url}")
 
     import uuid
+
     if "session_id" not in st.session_state:
         st.session_state["session_id"] = str(uuid.uuid4())
-    
+
 
 # -- Page: Product Search & Recommendations -----------------------------------
 if page == "🔍 Product Search & Recommendations":
@@ -107,7 +105,9 @@ if page == "🔍 Product Search & Recommendations":
                 st.session_state["_categories_cache"] = categories
             category = st.selectbox("Category", ["All"] + categories)
         with col2:
-            brand = st.text_input("Name / Brand", placeholder="e.g. Samsung, Galaxy S24, Apple")
+            brand = st.text_input(
+                "Name / Brand", placeholder="e.g. Samsung, Galaxy S24, Apple"
+            )
 
         if st.button("Search Products", type="primary"):
             params = {
@@ -146,7 +146,7 @@ if page == "🔍 Product Search & Recommendations":
             shown = len(products)
             st.markdown(
                 f'<p class="product-count-header">Showing <strong>1–{shown}</strong> of '
-                f'<strong>{total}</strong> products</p>',
+                f"<strong>{total}</strong> products</p>",
                 unsafe_allow_html=True,
             )
 
@@ -159,6 +159,7 @@ if page == "🔍 Product Search & Recommendations":
                 )
                 if selected_product:
                     from app.ui.components.review_panel import render_review_panel
+
                     render_review_panel(selected_product, api_url)
                 else:
                     st.session_state["selected_review_product_id"] = None
@@ -171,14 +172,20 @@ if page == "🔍 Product Search & Recommendations":
 
                 bar_col1, bar_col2, bar_col3 = st.columns([4, 2, 2])
                 with bar_col1:
-                    names = " vs ".join(p.get("name", "?")[:30] for p in compare_products)
+                    names = " vs ".join(
+                        p.get("name", "?")[:30] for p in compare_products
+                    )
                     st.markdown(
                         f'<div class="compare-action-bar">⚖️ Comparing: <strong>{names}</strong></div>',
                         unsafe_allow_html=True,
                     )
                 with bar_col2:
-                    if st.button(f"Compare Products ({n}/2)", type="primary",
-                                 disabled=(n < 2), use_container_width=True):
+                    if st.button(
+                        f"Compare Products ({n}/2)",
+                        type="primary",
+                        disabled=(n < 2),
+                        use_container_width=True,
+                    ):
                         st.session_state["compare_open"] = True
                         st.rerun()
                 with bar_col3:
@@ -189,22 +196,34 @@ if page == "🔍 Product Search & Recommendations":
                         st.rerun()
 
                 if st.session_state.get("compare_open") and len(compare_products) == 2:
-                    from app.ui.components.compare_panel import render_compare_panel, render_ai_comparison
+                    from app.ui.components.compare_panel import (
+                        render_compare_panel,
+                        render_ai_comparison,
+                    )
+
                     with st.container():
                         render_compare_panel(compare_products[0], compare_products[1])
                         btn_col1, btn_col2 = st.columns(2)
                         with btn_col1:
-                            if st.button("🤖 AI Compare", type="primary", use_container_width=True):
+                            if st.button(
+                                "🤖 AI Compare",
+                                type="primary",
+                                use_container_width=True,
+                            ):
                                 st.session_state["compare_ai_open"] = True
                                 st.rerun()
                         with btn_col2:
-                            if st.button("✕ Close Comparison", use_container_width=True):
+                            if st.button(
+                                "✕ Close Comparison", use_container_width=True
+                            ):
                                 st.session_state["compare_open"] = False
                                 st.session_state["compare_ai_open"] = False
                                 st.rerun()
                         if st.session_state.get("compare_ai_open"):
                             st.divider()
-                            render_ai_comparison(compare_products[0], compare_products[1], api_url)
+                            render_ai_comparison(
+                                compare_products[0], compare_products[1], api_url
+                            )
                 elif st.session_state.get("compare_open") and len(compare_products) < 2:
                     st.info("Please select a second product to compare.")
 
@@ -275,9 +294,13 @@ elif page == "⭐ Review Summarization":
 
     if not query.strip() and not st.session_state.get("review_submitted"):
         from app.ui.design_tokens import render_empty_state
+
         st.markdown(
-            render_empty_state("⭐", "Enter a product name above to summarise its reviews.",
-                               "Try: 'Sony WH-1000XM5' or 'Samsung Galaxy S24'"),
+            render_empty_state(
+                "⭐",
+                "Enter a product name above to summarise its reviews.",
+                "Try: 'Sony WH-1000XM5' or 'Samsung Galaxy S24'",
+            ),
             unsafe_allow_html=True,
         )
     elif st.button("Summarize Reviews", type="primary"):
@@ -313,9 +336,13 @@ elif page == "💰 Pricing Insights":
 
     if not query.strip():
         from app.ui.design_tokens import render_empty_state
+
         st.markdown(
-            render_empty_state("💰", "Enter a comparison search above.",
-                               "Try: 'Compare Samsung S24 and Google Pixel 8'"),
+            render_empty_state(
+                "💰",
+                "Enter a comparison search above.",
+                "Try: 'Compare Samsung S24 and Google Pixel 8'",
+            ),
             unsafe_allow_html=True,
         )
     elif st.button("Compare Prices", type="primary"):
@@ -330,7 +357,9 @@ elif page == "💰 Pricing Insights":
                 st.success(f"Compared **{data['total_compared']}** products")
 
                 # Best deal highlight
-                st.info(f"🏆 **Best Deal:** {data['best_deal']}\n\n{data['recommendation']}")
+                st.info(
+                    f"🏆 **Best Deal:** {data['best_deal']}\n\n{data['recommendation']}"
+                )
 
                 # Side-by-side comparison table
                 if data["products"]:
@@ -344,10 +373,20 @@ elif page == "💰 Pricing Insights":
                             "SmartShop": f"${p['our_price']:,.2f}",
                         }
                         for pp in p["competitor_prices"]:
-                            row[pp["source"]] = f"${pp['price']:,.2f}" + (" ✓" if pp["is_best"] else "")
-                        row["Best Price"] = f"${p['best_price']:,.2f} ({p['best_source']})"
-                        row["Savings"] = f"{p['savings_pct']:.1f}%" if p["savings_pct"] > 0 else "—"
-                        row["Rating"] = f"{'⭐' * round(p['rating'])} ({p['rating']:.1f})" if p.get("rating") else "N/A"
+                            row[pp["source"]] = f"${pp['price']:,.2f}" + (
+                                " ✓" if pp["is_best"] else ""
+                            )
+                        row["Best Price"] = (
+                            f"${p['best_price']:,.2f} ({p['best_source']})"
+                        )
+                        row["Savings"] = (
+                            f"{p['savings_pct']:.1f}%" if p["savings_pct"] > 0 else "—"
+                        )
+                        row["Rating"] = (
+                            f"{'⭐' * round(p['rating'])} ({p['rating']:.1f})"
+                            if p.get("rating")
+                            else "N/A"
+                        )
                         row["Cached"] = "♻️" if p.get("is_cached") else "🔴 Live"
                         rows.append(row)
 

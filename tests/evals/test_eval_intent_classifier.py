@@ -170,7 +170,9 @@ async def test_extracts_price_range(classifier: IntentClassifier):
     assert result.intent == IntentType.RECOMMENDATION
     assert result.min_price is not None, "Should extract min_price"
     assert result.max_price is not None, "Should extract max_price"
-    assert result.min_price < result.max_price, "min_price should be less than max_price"
+    assert (
+        result.min_price < result.max_price
+    ), "min_price should be less than max_price"
     assert 350 <= result.min_price <= 450, f"min_price={result.min_price} not near $400"
     assert 750 <= result.max_price <= 850, f"max_price={result.max_price} not near $800"
 
@@ -182,9 +184,9 @@ async def test_extracts_category(classifier: IntentClassifier):
     print(f"\n  category={result.category!r}")
     assert result.intent in (IntentType.RECOMMENDATION, IntentType.GENERAL)
     if result.category:
-        assert "laptop" in result.category.lower(), (
-            f"Category should mention laptop: {result.category!r}"
-        )
+        assert (
+            "laptop" in result.category.lower()
+        ), f"Category should mention laptop: {result.category!r}"
 
 
 @pytest.mark.asyncio
@@ -194,13 +196,16 @@ async def test_extracts_product_name(classifier: IntentClassifier):
     print(f"\n  product_name={result.product_name!r}")
     assert result.intent == IntentType.REVIEW
     assert result.product_name is not None, "Should extract product name"
-    assert "sony" in result.product_name.lower() or "wh-1000" in result.product_name.lower(), (
-        f"Product name should mention Sony/WH-1000: {result.product_name!r}"
-    )
+    assert (
+        "sony" in result.product_name.lower()
+        or "wh-1000" in result.product_name.lower()
+    ), f"Product name should mention Sony/WH-1000: {result.product_name!r}"
 
 
 @pytest.mark.asyncio
-async def test_comparison_extracts_no_price_for_brand_comparison(classifier: IntentClassifier):
+async def test_comparison_extracts_no_price_for_brand_comparison(
+    classifier: IntentClassifier,
+):
     """Brand-level comparison queries should not extract spurious prices."""
     result = await classifier.classify("Compare Apple and Samsung smartphones")
     print(f"\n  intent={result.intent.value}, max_price={result.max_price}")
@@ -226,13 +231,15 @@ async def test_high_confidence_for_unambiguous_queries(classifier: IntentClassif
         result = await classifier.classify(query)
         print(f"\n  {query!r} → {result.intent.value} conf={result.confidence:.2f}")
         assert result.intent == expected_intent
-        assert result.confidence >= 0.75, (
-            f"Expected high confidence for clear query {query!r}: {result.confidence:.2f}"
-        )
+        assert (
+            result.confidence >= 0.75
+        ), f"Expected high confidence for clear query {query!r}: {result.confidence:.2f}"
 
 
 @pytest.mark.asyncio
-async def test_fallback_to_general_on_very_ambiguous_query(classifier: IntentClassifier):
+async def test_fallback_to_general_on_very_ambiguous_query(
+    classifier: IntentClassifier,
+):
     """Very ambiguous or completely off-topic queries should classify as GENERAL."""
     ambiguous_queries = [
         "Can you help me?",
@@ -267,6 +274,6 @@ async def test_classifier_provides_reasoning(classifier: IntentClassifier):
     for query in queries:
         result = await classifier.classify(query)
         assert result.reasoning, f"Missing reasoning for query: {query!r}"
-        assert len(result.reasoning) > 10, (
-            f"Reasoning too short for {query!r}: {result.reasoning!r}"
-        )
+        assert (
+            len(result.reasoning) > 10
+        ), f"Reasoning too short for {query!r}: {result.reasoning!r}"

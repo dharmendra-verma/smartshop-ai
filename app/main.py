@@ -55,15 +55,18 @@ app.include_router(chat_router, prefix="/api/v1", tags=["chat"])
 async def startup_event():
     logger.info("Starting %s v%s", settings.APP_NAME, settings.APP_VERSION)
     from app.services.session.session_store import get_session_store
+
     get_session_store()
     logger.info("Docs: http://%s:%s/docs", settings.API_HOST, settings.API_PORT)
 
     from app.services.cache_warmer import warm_caches
+
     await warm_caches()
 
     from app.agents.policy.agent import get_vector_store
     from app.models.policy import Policy
     from app.core.database import get_db
+
     db = next(get_db())
     try:
         policies = db.query(Policy).all()
@@ -81,6 +84,7 @@ async def shutdown_event():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "app.main:app",
         host=settings.API_HOST,

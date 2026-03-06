@@ -3,15 +3,35 @@
 # Keyword sets for client-side intent detection
 # TODO SCRUM-16: Replace with POST /api/v1/chat once the Orchestrator is live.
 _REVIEW_KEYWORDS = {
-    "review", "reviews", "summarize", "summary", "opinions",
-    "what do customers", "what people say", "feedback", "ratings",
-    "pros and cons", "pros cons",
+    "review",
+    "reviews",
+    "summarize",
+    "summary",
+    "opinions",
+    "what do customers",
+    "what people say",
+    "feedback",
+    "ratings",
+    "pros and cons",
+    "pros cons",
 }
 
 _RECOMMENDATION_KEYWORDS = {
-    "recommend", "suggest", "find", "show me", "best", "budget",
-    "under $", "cheap", "affordable", "top", "popular", "buy",
-    "looking for", "want to buy", "gift",
+    "recommend",
+    "suggest",
+    "find",
+    "show me",
+    "best",
+    "budget",
+    "under $",
+    "cheap",
+    "affordable",
+    "top",
+    "popular",
+    "buy",
+    "looking for",
+    "want to buy",
+    "gift",
 }
 
 

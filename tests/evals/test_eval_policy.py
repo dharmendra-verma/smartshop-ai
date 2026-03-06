@@ -69,7 +69,9 @@ WARRANTY_POLICY_CHUNKS = [
     },
 ]
 
-ALL_POLICY_CHUNKS = RETURN_POLICY_CHUNKS + SHIPPING_POLICY_CHUNKS + WARRANTY_POLICY_CHUNKS
+ALL_POLICY_CHUNKS = (
+    RETURN_POLICY_CHUNKS + SHIPPING_POLICY_CHUNKS + WARRANTY_POLICY_CHUNKS
+)
 
 
 def _make_vector_store(chunks: list[dict]):
@@ -104,7 +106,9 @@ def deps() -> AgentDependencies:
 # ---------------------------------------------------------------------------
 
 
-async def _eval(agent, deps, judge, query, vector_chunks, context_extras=None, min_overall=0.65):
+async def _eval(
+    agent, deps, judge, query, vector_chunks, context_extras=None, min_overall=0.65
+):
     ctx = {"deps": deps, **(context_extras or {})}
     vs = _make_vector_store(vector_chunks)
 
@@ -157,22 +161,26 @@ async def _eval(agent, deps, judge, query, vector_chunks, context_extras=None, m
 async def test_policy_return_window_accuracy(agent, deps, judge: LLMJudge):
     """Agent should accurately state the 30-day return window."""
     score, result = await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="What is your return policy? How many days do I have to return something?",
         vector_chunks=RETURN_POLICY_CHUNKS,
         min_overall=0.65,
     )
     if result.success:
-        assert score.correctness >= 0.60, (
-            f"Return policy correctness too low: {score.correctness:.2f}"
-        )
+        assert (
+            score.correctness >= 0.60
+        ), f"Return policy correctness too low: {score.correctness:.2f}"
 
 
 @pytest.mark.asyncio
 async def test_policy_opened_electronics_restocking_fee(agent, deps, judge: LLMJudge):
     """Agent should mention the restocking fee for opened electronics."""
     score, result = await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="Can I return an opened phone I bought last week?",
         vector_chunks=RETURN_POLICY_CHUNKS,
         min_overall=0.62,
@@ -186,7 +194,9 @@ async def test_policy_opened_electronics_restocking_fee(agent, deps, judge: LLMJ
 async def test_policy_sale_items_are_final(agent, deps, judge: LLMJudge):
     """Agent should correctly state that sale items are non-returnable."""
     await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="I bought a sale item. Can I return it?",
         vector_chunks=RETURN_POLICY_CHUNKS,
         min_overall=0.62,
@@ -202,7 +212,9 @@ async def test_policy_sale_items_are_final(agent, deps, judge: LLMJudge):
 async def test_policy_shipping_timeframe(agent, deps, judge: LLMJudge):
     """Agent should accurately state shipping timeframes."""
     score, result = await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="How long does standard shipping take?",
         vector_chunks=SHIPPING_POLICY_CHUNKS,
         min_overall=0.65,
@@ -215,7 +227,9 @@ async def test_policy_shipping_timeframe(agent, deps, judge: LLMJudge):
 async def test_policy_free_shipping_threshold(agent, deps, judge: LLMJudge):
     """Agent should know the free shipping threshold ($50)."""
     await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="Do you offer free shipping? What is the minimum order?",
         vector_chunks=SHIPPING_POLICY_CHUNKS,
         min_overall=0.65,
@@ -226,7 +240,9 @@ async def test_policy_free_shipping_threshold(agent, deps, judge: LLMJudge):
 async def test_policy_express_shipping_cost(agent, deps, judge: LLMJudge):
     """Agent should know the express shipping cost ($9.99)."""
     await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="I need my order quickly. What are my express shipping options?",
         vector_chunks=SHIPPING_POLICY_CHUNKS,
         min_overall=0.62,
@@ -242,7 +258,9 @@ async def test_policy_express_shipping_cost(agent, deps, judge: LLMJudge):
 async def test_policy_warranty_duration(agent, deps, judge: LLMJudge):
     """Agent should state the 1-year warranty duration."""
     score, result = await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="What warranty do your products come with?",
         vector_chunks=WARRANTY_POLICY_CHUNKS,
         min_overall=0.65,
@@ -255,7 +273,9 @@ async def test_policy_warranty_duration(agent, deps, judge: LLMJudge):
 async def test_policy_warranty_exclusions(agent, deps, judge: LLMJudge):
     """Agent should correctly state that accidental damage is not covered."""
     score, result = await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="My phone screen cracked accidentally. Is that covered under warranty?",
         vector_chunks=WARRANTY_POLICY_CHUNKS,
         min_overall=0.62,
@@ -274,7 +294,9 @@ async def test_policy_warranty_exclusions(agent, deps, judge: LLMJudge):
 async def test_policy_response_relevance(agent, deps, judge: LLMJudge):
     """Policy response should be highly relevant to the specific policy asked about."""
     score, result = await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="What is the return policy for electronics?",
         vector_chunks=RETURN_POLICY_CHUNKS,
         min_overall=0.62,
@@ -284,10 +306,14 @@ async def test_policy_response_relevance(agent, deps, judge: LLMJudge):
 
 
 @pytest.mark.asyncio
-async def test_policy_general_policy_question_uses_all_context(agent, deps, judge: LLMJudge):
+async def test_policy_general_policy_question_uses_all_context(
+    agent, deps, judge: LLMJudge
+):
     """General policy question should draw on all available policy chunks."""
     await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="Can you give me an overview of your main store policies?",
         vector_chunks=ALL_POLICY_CHUNKS,
         min_overall=0.60,

@@ -14,7 +14,7 @@ Running
 
 import pytest
 
-from tests.evals.judge import EvalCase, LLMJudge
+from tests.evals.judge import LLMJudge
 
 pytestmark = pytest.mark.eval
 
@@ -196,7 +196,9 @@ async def test_judge_ranks_good_above_bad(
     judge: LLMJudge, agent_type, query, good_response, bad_response
 ):
     """For every pair, good response overall score must exceed bad response overall score."""
-    good_score, bad_score = await judge.compare(query, good_response, bad_response, agent_type)
+    good_score, bad_score = await judge.compare(
+        query, good_response, bad_response, agent_type
+    )
     print(f"\n[{agent_type}] GOOD={good_score.overall:.2f} BAD={bad_score.overall:.2f}")
     assert good_score.overall > bad_score.overall, (
         f"Judge failed to rank good > bad for [{agent_type}]:\n"
@@ -250,8 +252,11 @@ async def test_judge_average_property(judge: LLMJudge):
         agent_type="policy",
     )
     expected_avg = (
-        score.relevance + score.correctness + score.reasoning_quality + score.helpfulness
+        score.relevance
+        + score.correctness
+        + score.reasoning_quality
+        + score.helpfulness
     ) / 4
-    assert abs(score.average - expected_avg) < 1e-9, (
-        f"average property mismatch: {score.average:.4f} vs {expected_avg:.4f}"
-    )
+    assert (
+        abs(score.average - expected_avg) < 1e-9
+    ), f"average property mismatch: {score.average:.4f} vs {expected_avg:.4f}"

@@ -1,8 +1,6 @@
 """Tests for load_catalog script functionality."""
 
-import pytest
 from decimal import Decimal
-from pathlib import Path
 
 from app.models.product import Product
 from app.models.review import Review
@@ -70,8 +68,19 @@ class TestLoadReviews:
 
     def test_load_reviews_with_products(self, db_session, tmp_path):
         # Create products first
-        db_session.add(Product(id="SP0001", name="Phone", price=Decimal("699.99"), category="smartphone"))
-        db_session.add(Product(id="SP0002", name="Laptop", price=Decimal("999.99"), category="laptop"))
+        db_session.add(
+            Product(
+                id="SP0001",
+                name="Phone",
+                price=Decimal("699.99"),
+                category="smartphone",
+            )
+        )
+        db_session.add(
+            Product(
+                id="SP0002", name="Laptop", price=Decimal("999.99"), category="laptop"
+            )
+        )
         db_session.commit()
 
         csv_file = tmp_path / "reviews.csv"
@@ -89,7 +98,14 @@ class TestLoadReviews:
         assert len(reviews) == 2
 
     def test_reviews_with_invalid_product_id_rejected(self, db_session, tmp_path):
-        db_session.add(Product(id="SP0001", name="Phone", price=Decimal("699.99"), category="smartphone"))
+        db_session.add(
+            Product(
+                id="SP0001",
+                name="Phone",
+                price=Decimal("699.99"),
+                category="smartphone",
+            )
+        )
         db_session.commit()
 
         csv_file = tmp_path / "reviews.csv"
@@ -106,14 +122,18 @@ class TestLoadReviews:
         assert result.failed == 1
 
     def test_sentiment_auto_inferred(self, db_session, tmp_path):
-        db_session.add(Product(id="SP0001", name="Phone", price=Decimal("699.99"), category="smartphone"))
+        db_session.add(
+            Product(
+                id="SP0001",
+                name="Phone",
+                price=Decimal("699.99"),
+                category="smartphone",
+            )
+        )
         db_session.commit()
 
         csv_file = tmp_path / "reviews.csv"
-        csv_file.write_text(
-            "product_id,rating,text\n"
-            "SP0001,5,Love it\n"
-        )
+        csv_file.write_text("product_id,rating,text\n" "SP0001,5,Love it\n")
 
         ingester = ReviewIngester(db_session=db_session)
         ingester.run(csv_file)

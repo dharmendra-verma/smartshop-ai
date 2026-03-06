@@ -5,7 +5,6 @@ Streamlit document via window.parent.document so that position:fixed works
 correctly across the entire viewport.
 """
 
-import streamlit as st
 import streamlit.components.v1 as components
 
 

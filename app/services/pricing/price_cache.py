@@ -1,8 +1,6 @@
 """Module-level price cache singleton — Redis or in-memory TTLCache."""
 
-import time
 import logging
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 

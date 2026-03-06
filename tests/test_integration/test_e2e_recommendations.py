@@ -20,7 +20,7 @@ def make_mock_db(products=None):
     """DB mock that returns a list of mock Product objects."""
     db = MagicMock()
     mock_products = []
-    for p in (products or []):
+    for p in products or []:
         m = MagicMock()
         for k, v in p.items():
             setattr(m, k, v)
@@ -31,7 +31,9 @@ def make_mock_db(products=None):
         mock_products[0] if mock_products else None
     )
     db.query.return_value.filter.return_value.all.return_value = mock_products
-    db.query.return_value.order_by.return_value.limit.return_value.all.return_value = mock_products
+    db.query.return_value.order_by.return_value.limit.return_value.all.return_value = (
+        mock_products
+    )
     db.query.return_value.limit.return_value.all.return_value = mock_products
     db.query.return_value.all.return_value = mock_products
     return db
@@ -39,14 +41,28 @@ def make_mock_db(products=None):
 
 SAMPLE_PRODUCTS = [
     {
-        "id": "PROD001", "name": "Budget Phone X1", "price": Decimal("299.99"),
-        "brand": "TechCo", "category": "smartphones", "stock": 50,
-        "rating": 4.2, "description": "Affordable", "created_at": None, "updated_at": None,
+        "id": "PROD001",
+        "name": "Budget Phone X1",
+        "price": Decimal("299.99"),
+        "brand": "TechCo",
+        "category": "smartphones",
+        "stock": 50,
+        "rating": 4.2,
+        "description": "Affordable",
+        "created_at": None,
+        "updated_at": None,
     },
     {
-        "id": "PROD002", "name": "Mid-Range Phone Y2", "price": Decimal("449.99"),
-        "brand": "MidCo", "category": "smartphones", "stock": 30,
-        "rating": 4.5, "description": "Mid-range pick", "created_at": None, "updated_at": None,
+        "id": "PROD002",
+        "name": "Mid-Range Phone Y2",
+        "price": Decimal("449.99"),
+        "brand": "MidCo",
+        "category": "smartphones",
+        "stock": 30,
+        "rating": 4.5,
+        "description": "Mid-range pick",
+        "created_at": None,
+        "updated_at": None,
     },
 ]
 
@@ -95,9 +111,12 @@ class TestE2ERecommendations:
         import app.api.v1.recommendations as rec_module
 
         with patch.object(
-            rec_module._agent, "process",
+            rec_module._agent,
+            "process",
             new_callable=AsyncMock,
-            return_value=AgentResponse(success=False, data={}, error="Vector store unavailable"),
+            return_value=AgentResponse(
+                success=False, data={}, error="Vector store unavailable"
+            ),
         ):
             resp = client.post(
                 "/api/v1/recommendations",
@@ -111,7 +130,8 @@ class TestE2ERecommendations:
         import app.api.v1.recommendations as rec_module
 
         with patch.object(
-            rec_module._agent, "process",
+            rec_module._agent,
+            "process",
             new_callable=AsyncMock,
             return_value=AgentResponse(
                 success=True,

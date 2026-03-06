@@ -25,7 +25,9 @@ class Settings(BaseSettings):
     OPENAI_TEMPERATURE: float = 0.7
 
     # Database
-    DATABASE_URL: str = "postgresql://postgres:password@localhost:5432/smartshop_ai"  # Default
+    DATABASE_URL: str = (
+        "postgresql://postgres:password@localhost:5432/smartshop_ai"  # Default
+    )
     DB_ECHO: bool = False
     DB_POOL_SIZE: int = 20
     DB_MAX_OVERFLOW: int = 10

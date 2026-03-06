@@ -1,6 +1,16 @@
 """Review model for customer product reviews."""
 
-from sqlalchemy import Column, Integer, String, Text, Float, Date, ForeignKey, Index, CheckConstraint
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    Float,
+    Date,
+    ForeignKey,
+    Index,
+    CheckConstraint,
+)
 from sqlalchemy.orm import relationship, backref
 
 from app.core.database import Base

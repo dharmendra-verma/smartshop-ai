@@ -25,10 +25,15 @@ SAMPLE_REVIEW_DATA = {
     "sentiment_score": 0.75,
     "average_rating": 4.0,
     "rating_distribution": {
-        "five_star": 40, "four_star": 35, "three_star": 15,
-        "two_star": 6, "one_star": 4,
+        "five_star": 40,
+        "four_star": 35,
+        "three_star": 15,
+        "two_star": 6,
+        "one_star": 4,
     },
-    "positive_themes": [{"theme": "Battery", "confidence": 0.85, "example_quote": None}],
+    "positive_themes": [
+        {"theme": "Battery", "confidence": 0.85, "example_quote": None}
+    ],
     "negative_themes": [{"theme": "Camera", "confidence": 0.70, "example_quote": None}],
     "overall_summary": "Good value phone.",
     "cached": False,
@@ -52,7 +57,8 @@ class TestE2EReviews:
         import app.api.v1.reviews as review_module
 
         with patch.object(
-            review_module._agent, "process",
+            review_module._agent,
+            "process",
             new_callable=AsyncMock,
             return_value=AgentResponse(success=True, data=SAMPLE_REVIEW_DATA),
         ):
@@ -73,7 +79,8 @@ class TestE2EReviews:
         import app.api.v1.reviews as review_module
 
         with patch.object(
-            review_module._agent, "process",
+            review_module._agent,
+            "process",
             new_callable=AsyncMock,
             return_value=AgentResponse(success=True, data=SAMPLE_REVIEW_DATA),
         ) as mock_process:
@@ -91,7 +98,8 @@ class TestE2EReviews:
         import app.api.v1.reviews as review_module
 
         with patch.object(
-            review_module._agent, "process",
+            review_module._agent,
+            "process",
             new_callable=AsyncMock,
             return_value=AgentResponse(success=False, data={}, error="Cache timeout"),
         ):
@@ -116,7 +124,8 @@ class TestE2EReviews:
         import app.api.v1.reviews as review_module
 
         with patch.object(
-            review_module._agent, "process",
+            review_module._agent,
+            "process",
             new_callable=AsyncMock,
             return_value=AgentResponse(success=True, data=SAMPLE_REVIEW_DATA),
         ):
@@ -132,7 +141,8 @@ class TestE2EReviews:
         import app.api.v1.recommendations as rec_module
 
         with patch.object(
-            rec_module._agent, "process",
+            rec_module._agent,
+            "process",
             new_callable=AsyncMock,
             return_value=AgentResponse(
                 success=True,
@@ -140,10 +150,14 @@ class TestE2EReviews:
                     "query": "budget smartphones under $500",
                     "recommendations": [
                         {
-                            "id": "PROD001", "name": "Budget Phone X1",
-                            "price": "299.99", "brand": "TechCo",
-                            "category": "smartphones", "rating": 4.2,
-                            "stock": 50, "relevance_score": 0.95,
+                            "id": "PROD001",
+                            "name": "Budget Phone X1",
+                            "price": "299.99",
+                            "brand": "TechCo",
+                            "category": "smartphones",
+                            "rating": 4.2,
+                            "stock": 50,
+                            "relevance_score": 0.95,
                             "reason": "Best value in budget segment",
                         }
                     ],
@@ -168,7 +182,8 @@ class TestE2EReviews:
         import app.api.v1.reviews as review_module
 
         with patch.object(
-            review_module._agent, "process",
+            review_module._agent,
+            "process",
             new_callable=AsyncMock,
             return_value=AgentResponse(success=True, data=SAMPLE_REVIEW_DATA),
         ):

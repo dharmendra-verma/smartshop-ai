@@ -1,7 +1,6 @@
 """Verify CI/CD infrastructure files exist and are properly configured."""
 
 import os
-import pytest
 
 ROOT_DIR = os.path.join(os.path.dirname(__file__), "..", "..")
 
@@ -111,45 +110,33 @@ class TestInfrastructure:
         )
 
     def test_staging_params_exists(self):
-        assert os.path.isfile(
-            os.path.join(self.INFRA_DIR, "parameters.staging.json")
-        )
+        assert os.path.isfile(os.path.join(self.INFRA_DIR, "parameters.staging.json"))
 
     def test_prod_params_exists(self):
         assert os.path.isfile(os.path.join(self.INFRA_DIR, "parameters.prod.json"))
 
     def test_bicep_has_container_apps(self):
-        with open(
-            os.path.join(self.INFRA_DIR, "modules", "resources.bicep"), "r"
-        ) as f:
+        with open(os.path.join(self.INFRA_DIR, "modules", "resources.bicep"), "r") as f:
             content = f.read()
         assert "Microsoft.App/containerApps" in content
 
     def test_bicep_has_postgres(self):
-        with open(
-            os.path.join(self.INFRA_DIR, "modules", "resources.bicep"), "r"
-        ) as f:
+        with open(os.path.join(self.INFRA_DIR, "modules", "resources.bicep"), "r") as f:
             content = f.read()
         assert "Microsoft.DBforPostgreSQL" in content
 
     def test_bicep_has_redis(self):
-        with open(
-            os.path.join(self.INFRA_DIR, "modules", "resources.bicep"), "r"
-        ) as f:
+        with open(os.path.join(self.INFRA_DIR, "modules", "resources.bicep"), "r") as f:
             content = f.read()
         assert "Microsoft.Cache/redis" in content
 
     def test_bicep_has_key_vault(self):
-        with open(
-            os.path.join(self.INFRA_DIR, "modules", "resources.bicep"), "r"
-        ) as f:
+        with open(os.path.join(self.INFRA_DIR, "modules", "resources.bicep"), "r") as f:
             content = f.read()
         assert "Microsoft.KeyVault" in content
 
     def test_bicep_has_health_probes(self):
-        with open(
-            os.path.join(self.INFRA_DIR, "modules", "resources.bicep"), "r"
-        ) as f:
+        with open(os.path.join(self.INFRA_DIR, "modules", "resources.bicep"), "r") as f:
             content = f.read()
         assert "/health" in content
         assert "Liveness" in content

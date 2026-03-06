@@ -1,7 +1,6 @@
 """Tests for data quality monitor."""
 
 import json
-import pytest
 
 from app.schemas.ingestion import IngestionResult
 from app.services.ingestion.quality_monitor import DataQualityMonitor

@@ -76,7 +76,14 @@ def test_policy_query_by_type(db_session):
     """Test querying policies by policy_type."""
     types = ["shipping", "returns", "warranty", "shipping"]
     for i, pt in enumerate(types):
-        db_session.add(Policy(policy_type=pt, description=f"D{i}", conditions=f"C{i}", timeframe=i * 10))
+        db_session.add(
+            Policy(
+                policy_type=pt,
+                description=f"D{i}",
+                conditions=f"C{i}",
+                timeframe=i * 10,
+            )
+        )
     db_session.commit()
 
     shipping = db_session.query(Policy).filter(Policy.policy_type == "shipping").all()
@@ -88,7 +95,12 @@ def test_policy_query_by_type(db_session):
 
 def test_policy_timeframe_handling(db_session):
     """Test timeframe is stored and retrieved correctly."""
-    policy = Policy(policy_type="warranty", description="Extended Warranty", conditions="Covers defects", timeframe=365)
+    policy = Policy(
+        policy_type="warranty",
+        description="Extended Warranty",
+        conditions="Covers defects",
+        timeframe=365,
+    )
     db_session.add(policy)
     db_session.commit()
     db_session.refresh(policy)

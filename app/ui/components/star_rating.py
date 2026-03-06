@@ -1,12 +1,12 @@
 """Star rating renderer — half-star precision, WCAG aria-label."""
 
-import math
 
-
-def render_star_rating_html(rating: float | None,
-                             max_stars: int = 5,
-                             label: str | None = None,
-                             review_count: int | None = None) -> str:
+def render_star_rating_html(
+    rating: float | None,
+    max_stars: int = 5,
+    label: str | None = None,
+    review_count: int | None = None,
+) -> str:
     """
     Return an HTML span with filled / half / empty star characters and
     an aria-label for screen-reader accessibility.
@@ -52,14 +52,14 @@ def render_star_rating_html(rating: float | None,
         count_html = (
             f' <a href="#reviews" class="review-count-link" '
             f'aria-label="{review_count} customer review{plural}">'
-            f'{review_count} review{plural}</a>'
+            f"{review_count} review{plural}</a>"
         )
     else:
         count_html = ""
 
     return (
         f'<span class="star-rating" aria-label="{aria}" role="img">'
-        f'{inner}</span>{count_html}'
+        f"{inner}</span>{count_html}"
     )
 
 

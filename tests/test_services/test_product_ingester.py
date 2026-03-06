@@ -1,8 +1,5 @@
 """Tests for product catalog ingester."""
 
-import pytest
-from decimal import Decimal
-
 from app.models.product import Product
 from app.services.ingestion.product_ingester import ProductIngester
 
@@ -47,8 +44,7 @@ class TestProductIngester:
     def test_price_cleaning_currency_symbol(self, db_session, tmp_path):
         csv_file = tmp_path / "products.csv"
         csv_file.write_text(
-            "id,name,price,category\n"
-            "SP0010,Item,$299.99,Electronics\n"
+            "id,name,price,category\n" "SP0010,Item,$299.99,Electronics\n"
         )
 
         ingester = ProductIngester(db_session=db_session)
@@ -76,8 +72,7 @@ class TestProductIngester:
     def test_missing_optional_columns(self, db_session, tmp_path):
         csv_file = tmp_path / "products.csv"
         csv_file.write_text(
-            "id,name,price,category\n"
-            "SP0020,Simple Item,9.99,General\n"
+            "id,name,price,category\n" "SP0020,Simple Item,9.99,General\n"
         )
 
         ingester = ProductIngester(db_session=db_session)
@@ -90,9 +85,7 @@ class TestProductIngester:
     def test_invalid_rows_counted_as_failures(self, db_session, tmp_path):
         csv_file = tmp_path / "products.csv"
         csv_file.write_text(
-            "id,name,price,category\n"
-            "SP0030,Good Item,10.0,Electronics\n"
-            ",0,\n"
+            "id,name,price,category\n" "SP0030,Good Item,10.0,Electronics\n" ",0,\n"
         )
 
         ingester = ProductIngester(db_session=db_session)
@@ -104,12 +97,11 @@ class TestProductIngester:
     def test_category_normalized_to_title_case(self, db_session, tmp_path):
         csv_file = tmp_path / "products.csv"
         csv_file.write_text(
-            "id,name,price,category\n"
-            "SP0040,Item,10.0,home & kitchen\n"
+            "id,name,price,category\n" "SP0040,Item,10.0,home & kitchen\n"
         )
 
         ingester = ProductIngester(db_session=db_session)
-        result = ingester.run(csv_file)
+        ingester.run(csv_file)
 
         product = db_session.query(Product).first()
         assert product.category == "Home & Kitchen"

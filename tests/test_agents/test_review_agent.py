@@ -16,7 +16,7 @@ def make_mock_db(products=None, reviews=None):
     """Create a mock SQLAlchemy session."""
     db = MagicMock()
     mock_products = []
-    for p in (products or []):
+    for p in products or []:
         mock_product = MagicMock()
         for key, val in p.items():
             setattr(mock_product, key, val)
@@ -24,15 +24,23 @@ def make_mock_db(products=None, reviews=None):
 
     if mock_products:
         db.query.return_value.filter.return_value.first.return_value = mock_products[0]
-        db.query.return_value.filter.return_value.order_by.return_value.first.return_value = mock_products[0]
+        db.query.return_value.filter.return_value.order_by.return_value.first.return_value = mock_products[
+            0
+        ]
     else:
         db.query.return_value.filter.return_value.first.return_value = None
-        db.query.return_value.filter.return_value.order_by.return_value.first.return_value = None
+        db.query.return_value.filter.return_value.order_by.return_value.first.return_value = (
+            None
+        )
 
     # Default empty results for group_by and scalar queries
-    db.query.return_value.filter.return_value.group_by.return_value.all.return_value = []
+    db.query.return_value.filter.return_value.group_by.return_value.all.return_value = (
+        []
+    )
     db.query.return_value.filter.return_value.scalar.return_value = None
-    db.query.return_value.filter.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = []
+    db.query.return_value.filter.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = (
+        []
+    )
     return db
 
 
@@ -42,6 +50,7 @@ SAMPLE_PRODUCTS = [
 
 
 # ---- TTLCache Tests ----
+
 
 class TestTTLCache:
     def test_set_and_get(self):
@@ -101,6 +110,7 @@ class TestTTLCache:
 
 # ---- RedisCache Tests (mocked) ----
 
+
 class TestRedisCache:
     def test_set_and_get(self):
         mock_client = MagicMock()
@@ -109,7 +119,9 @@ class TestRedisCache:
         with patch("redis.Redis.from_url", return_value=mock_client):
             cache = RedisCache("redis://localhost:6379/0")
             cache.set("key1", {"data": 42}, ttl=60)
-            mock_client.set.assert_called_once_with("smartshop:key1", '{"data": 42}', ex=60)
+            mock_client.set.assert_called_once_with(
+                "smartshop:key1", '{"data": 42}', ex=60
+            )
 
             result = cache.get("key1")
             assert result == {"data": 42}
@@ -159,6 +171,7 @@ class TestRedisCache:
 
 
 # ---- Agent Tests ----
+
 
 class TestReviewAgentInit:
     def test_agent_initialises(self):
@@ -220,7 +233,13 @@ class TestReviewAgentProcess:
             "total_reviews": 10,
             "sentiment_score": 0.8,
             "average_rating": 4.2,
-            "rating_distribution": {"one_star": 1, "two_star": 1, "three_star": 2, "four_star": 3, "five_star": 3},
+            "rating_distribution": {
+                "one_star": 1,
+                "two_star": 1,
+                "three_star": 2,
+                "four_star": 3,
+                "five_star": 3,
+            },
             "positive_themes": [],
             "negative_themes": [],
             "overall_summary": "Great phone.",
@@ -241,6 +260,7 @@ class TestReviewAgentProcess:
 
 
 # ---- Tool Tests ----
+
 
 class TestReviewTools:
     @pytest.mark.asyncio
@@ -288,7 +308,9 @@ class TestReviewTools:
 
         db = make_mock_db()
         # Override the chained query for review samples
-        db.query.return_value.filter.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = []
+        db.query.return_value.filter.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = (
+            []
+        )
         deps = AgentDependencies(db=db, settings=get_settings())
         ctx = MagicMock()
         ctx.deps = deps
@@ -301,28 +323,37 @@ class TestReviewTools:
 
 # ---- Schema Tests ----
 
+
 class TestReviewSchemas:
     def test_request_schema_valid(self):
         from app.schemas.review import ReviewSummarizationRequest
+
         req = ReviewSummarizationRequest(query="Summarize reviews for iPhone 15")
         assert req.max_reviews == 20
         assert req.product_id is None
 
     def test_request_schema_with_product_id(self):
         from app.schemas.review import ReviewSummarizationRequest
-        req = ReviewSummarizationRequest(query="summarize", product_id="PROD001", max_reviews=30)
+
+        req = ReviewSummarizationRequest(
+            query="summarize", product_id="PROD001", max_reviews=30
+        )
         assert req.product_id == "PROD001"
         assert req.max_reviews == 30
 
     def test_request_schema_query_too_short(self):
         from app.schemas.review import ReviewSummarizationRequest
+
         with pytest.raises(ValidationError):
             ReviewSummarizationRequest(query="ab")
 
     def test_response_schema(self):
         from app.schemas.review import (
-            ReviewSummarizationResponse, SentimentTheme, RatingDistribution
+            ReviewSummarizationResponse,
+            SentimentTheme,
+            RatingDistribution,
         )
+
         resp = ReviewSummarizationResponse(
             product_id="PROD001",
             product_name="iPhone 15",
@@ -333,11 +364,11 @@ class TestReviewSchemas:
                 one_star=5, two_star=10, three_star=15, four_star=35, five_star=35
             ),
             positive_themes=[
-                SentimentTheme(theme="Battery life", confidence=0.8, example_quote="Great battery")
+                SentimentTheme(
+                    theme="Battery life", confidence=0.8, example_quote="Great battery"
+                )
             ],
-            negative_themes=[
-                SentimentTheme(theme="Price", confidence=0.6)
-            ],
+            negative_themes=[SentimentTheme(theme="Price", confidence=0.6)],
             overall_summary="Highly rated smartphone.",
         )
         assert resp.sentiment_score == 0.75
@@ -346,5 +377,6 @@ class TestReviewSchemas:
 
     def test_sentiment_theme_bounds(self):
         from app.schemas.review import SentimentTheme
+
         with pytest.raises(ValidationError):
             SentimentTheme(theme="Test", confidence=1.5)

@@ -13,7 +13,7 @@ async def health_check():
         "status": "healthy",
         "service": "SmartShop AI",
         "version": "1.0.0",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.utcnow().isoformat(),
     }
 
 
@@ -21,6 +21,7 @@ async def health_check():
 async def health_alerts():
     """Return current failure counts within the alert window per component."""
     from app.core.alerting import get_alert_status
+
     return {"alerts": get_alert_status()}
 
 
@@ -28,6 +29,7 @@ async def health_alerts():
 async def health_metrics():
     """Return P50/P95 latency metrics per endpoint."""
     from app.core.metrics import get_metrics_summary
+
     return {"metrics": get_metrics_summary()}
 
 
@@ -37,5 +39,5 @@ async def root():
     return {
         "message": "Welcome to SmartShop AI - Your AI-Powered Shopping Assistant",
         "docs": "/docs",
-        "health": "/health"
+        "health": "/health",
     }

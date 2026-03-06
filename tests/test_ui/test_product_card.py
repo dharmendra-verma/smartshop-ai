@@ -1,6 +1,6 @@
 """Unit tests for product_card component (SCRUM-42, SCRUM-62)."""
 
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 import pytest
 
 
@@ -29,17 +29,21 @@ def mock_st():
 
 def test_description_shown_inline_not_expander(mock_st):
     from app.ui.components.product_card import render_product_card
+
     render_product_card(SAMPLE_PRODUCT)
     # Should NOT use expander
     mock_st.expander.assert_not_called()
     # Should use markdown with product-description class
     markdown_calls = [str(c) for c in mock_st.markdown.call_args_list]
     desc_calls = [c for c in markdown_calls if "product-description" in c]
-    assert len(desc_calls) > 0, "Description should be rendered with product-description class"
+    assert (
+        len(desc_calls) > 0
+    ), "Description should be rendered with product-description class"
 
 
 def test_description_uses_product_description_class(mock_st):
     from app.ui.components.product_card import render_product_card
+
     render_product_card(SAMPLE_PRODUCT)
     found = False
     for c in mock_st.markdown.call_args_list:
@@ -52,6 +56,7 @@ def test_description_uses_product_description_class(mock_st):
 
 def test_description_missing_renders_no_description_html(mock_st):
     from app.ui.components.product_card import render_product_card
+
     product = {**SAMPLE_PRODUCT, "description": None}
     render_product_card(product)
     for c in mock_st.markdown.call_args_list:
@@ -62,6 +67,7 @@ def test_description_missing_renders_no_description_html(mock_st):
 
 def test_product_name_rendered(mock_st):
     from app.ui.components.product_card import render_product_card
+
     render_product_card(SAMPLE_PRODUCT)
     found = any("Test Headphones" in str(c) for c in mock_st.markdown.call_args_list)
     assert found, "Product name should be rendered"
@@ -69,6 +75,7 @@ def test_product_name_rendered(mock_st):
 
 def test_price_badge_rendered(mock_st):
     from app.ui.components.product_card import render_product_card
+
     render_product_card(SAMPLE_PRODUCT)
     found = any("price-badge" in str(c) for c in mock_st.markdown.call_args_list)
     assert found, "Price badge should be rendered"
@@ -76,6 +83,7 @@ def test_price_badge_rendered(mock_st):
 
 def test_stock_badge_ok(mock_st):
     from app.ui.components.product_card import render_product_card
+
     render_product_card(SAMPLE_PRODUCT)
     found = any("stock-badge-ok" in str(c) for c in mock_st.markdown.call_args_list)
     assert found, "Stock badge should show 'ok' for stock > 10"
@@ -83,6 +91,7 @@ def test_stock_badge_ok(mock_st):
 
 def test_stock_out_badge(mock_st):
     from app.ui.components.product_card import render_product_card
+
     product = {**SAMPLE_PRODUCT, "stock": 0}
     render_product_card(product)
     found = any("stock-badge-out" in str(c) for c in mock_st.markdown.call_args_list)
@@ -93,6 +102,7 @@ def test_compare_checkbox_shown_on_card(mock_st):
     """Compare checkbox rendered for product with valid ID."""
     mock_st.session_state = {"compare_product_ids": [], "compare_open": False}
     from app.ui.components.product_card import render_product_card
+
     render_product_card(SAMPLE_PRODUCT)
     checkbox_calls = mock_st.checkbox.call_args_list
     compare_calls = [c for c in checkbox_calls if "Compare" in str(c)]
@@ -106,12 +116,15 @@ def test_compare_checkbox_checked_when_selected(mock_st):
         "compare_open": False,
     }
     from app.ui.components.product_card import render_product_card
+
     render_product_card(SAMPLE_PRODUCT)
     checkbox_calls = mock_st.checkbox.call_args_list
     for c in checkbox_calls:
         kwargs = c[1] if c[1] else {}
         if kwargs.get("key", "").startswith("compare_"):
-            assert kwargs.get("value") is True, "Checkbox should be checked when selected"
+            assert (
+                kwargs.get("value") is True
+            ), "Checkbox should be checked when selected"
             break
 
 

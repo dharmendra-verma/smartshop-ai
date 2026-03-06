@@ -37,6 +37,7 @@ def _fetch_review_summary(api_url: str, product: dict) -> dict | None:
         return st.session_state[cache_key]
     try:
         from app.ui.api_client import summarize_reviews
+
         result = summarize_reviews(
             api_url,
             query=product.get("name", ""),
@@ -60,6 +61,7 @@ def _fetch_verdict(api_url: str, product_a: dict, product_b: dict) -> str | None
         return st.session_state[cache_key]
     try:
         from app.ui.api_client import chat
+
         name_a = product_a.get("name", "Product A")
         name_b = product_b.get("name", "Product B")
         prompt = (
@@ -83,9 +85,7 @@ def _fetch_verdict(api_url: str, product_a: dict, product_b: dict) -> str | None
     return None
 
 
-def _render_ai_review_summaries(
-    product_a: dict, product_b: dict, api_url: str
-) -> None:
+def _render_ai_review_summaries(product_a: dict, product_b: dict, api_url: str) -> None:
     """Render side-by-side AI review summaries."""
     st.subheader("AI Review Summaries")
     col_a, col_b = st.columns(2)
@@ -94,6 +94,7 @@ def _render_ai_review_summaries(
         summary_a = _fetch_review_summary(api_url, product_a)
         if summary_a:
             from app.ui.components.review_display import render_review_summary
+
             render_review_summary(summary_a)
         else:
             st.warning("Could not load review summary.")
@@ -102,6 +103,7 @@ def _render_ai_review_summaries(
         summary_b = _fetch_review_summary(api_url, product_b)
         if summary_b:
             from app.ui.components.review_display import render_review_summary
+
             render_review_summary(summary_b)
         else:
             st.warning("Could not load review summary.")
@@ -136,7 +138,7 @@ def render_compare_panel(
                 f'<td class="compare-label">{field_label}</td>'
                 f'<td class="compare-cell"><img src="{img_a}" class="compare-thumb"/></td>'
                 f'<td class="compare-cell"><img src="{img_b}" class="compare-thumb"/></td>'
-                f'</tr>'
+                f"</tr>"
             )
         else:
             val_a = _get_field(product_a, field_key)
@@ -147,7 +149,7 @@ def render_compare_panel(
                 f'<td class="compare-label">{field_label}</td>'
                 f'<td class="compare-cell">{val_a}</td>'
                 f'<td class="compare-cell">{val_b}</td>'
-                f'</tr>'
+                f"</tr>"
             )
 
     name_a = product_a.get("name", "Product A")
@@ -171,9 +173,7 @@ def render_compare_panel(
     st.markdown(table_html, unsafe_allow_html=True)
 
 
-def render_ai_comparison(
-    product_a: dict, product_b: dict, api_url: str
-) -> None:
+def render_ai_comparison(product_a: dict, product_b: dict, api_url: str) -> None:
     """Render AI review summaries and verdict for two products."""
     with st.spinner("Generating AI comparison…"):
         _render_ai_review_summaries(product_a, product_b, api_url)

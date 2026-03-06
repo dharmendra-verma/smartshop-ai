@@ -12,7 +12,6 @@ Usage:
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from typing import Optional
 
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent
@@ -50,8 +49,12 @@ class EvalScore(BaseModel):
 
     relevance: float = Field(ge=0.0, le=1.0, description="Query relevance (0–1)")
     correctness: float = Field(ge=0.0, le=1.0, description="Factual correctness (0–1)")
-    reasoning_quality: float = Field(ge=0.0, le=1.0, description="Quality of reasoning (0–1)")
-    helpfulness: float = Field(ge=0.0, le=1.0, description="Helpfulness to the user (0–1)")
+    reasoning_quality: float = Field(
+        ge=0.0, le=1.0, description="Quality of reasoning (0–1)"
+    )
+    helpfulness: float = Field(
+        ge=0.0, le=1.0, description="Helpfulness to the user (0–1)"
+    )
     overall: float = Field(ge=0.0, le=1.0, description="Overall quality (0–1)")
     explanation: str = Field(description="One-sentence explanation of scores")
 
@@ -59,7 +62,10 @@ class EvalScore(BaseModel):
     def average(self) -> float:
         """Mean of the four primary dimensions (excludes 'overall')."""
         return (
-            self.relevance + self.correctness + self.reasoning_quality + self.helpfulness
+            self.relevance
+            + self.correctness
+            + self.reasoning_quality
+            + self.helpfulness
         ) / 4
 
     def __str__(self) -> str:
@@ -82,8 +88,8 @@ class EvalCase:
 
     name: str
     query: str
-    agent_type: str          # "recommendation" | "review" | "price" | "policy" | "general"
-    response_text: str       # Formatted response text presented to the judge
+    agent_type: str  # "recommendation" | "review" | "price" | "policy" | "general"
+    response_text: str  # Formatted response text presented to the judge
 
     # Optional context hint for the judge
     context: str = ""
@@ -150,7 +156,9 @@ class LLMJudge:
 
         prompt = "\n\n".join(prompt_parts)
 
-        result = await self._agent.run(prompt, usage_limits=UsageLimits(request_limit=3))
+        result = await self._agent.run(
+            prompt, usage_limits=UsageLimits(request_limit=3)
+        )
         score = result.output
 
         logger.info(
@@ -189,7 +197,9 @@ class LLMJudge:
             context=case.context,
         )
 
-    async def run_suite(self, cases: list[EvalCase]) -> list[tuple[EvalCase, EvalScore]]:
+    async def run_suite(
+        self, cases: list[EvalCase]
+    ) -> list[tuple[EvalCase, EvalScore]]:
         """Run a list of EvalCases concurrently.
 
         Returns:

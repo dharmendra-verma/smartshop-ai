@@ -6,7 +6,6 @@ from app.core.llm_cache import (
     get_cached_llm_response,
     set_cached_llm_response,
     reset_llm_cache,
-    _cache_key,
 )
 
 

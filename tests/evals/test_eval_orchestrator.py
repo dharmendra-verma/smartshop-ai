@@ -13,7 +13,7 @@ Running
     RUN_EVALS=1 pytest tests/evals/test_eval_orchestrator.py -v -s
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -21,7 +21,6 @@ from app.agents.base import AgentResponse
 from app.agents.orchestrator.orchestrator import Orchestrator, reset_orchestrator
 from app.schemas.chat import IntentType
 
-from tests.evals.conftest import SAMPLE_PRODUCTS, make_mock_db
 from tests.evals.judge import LLMJudge
 
 pytestmark = pytest.mark.eval
@@ -157,7 +156,9 @@ def _make_orchestrator_with_real_classifier() -> Orchestrator:
     from app.agents.orchestrator.orchestrator import Orchestrator
 
     registry = {
-        "recommendation": _make_mock_agent("recommendation-agent", GOOD_RECOMMENDATION_RESPONSE),
+        "recommendation": _make_mock_agent(
+            "recommendation-agent", GOOD_RECOMMENDATION_RESPONSE
+        ),
         "review": _make_mock_agent("review-agent", GOOD_REVIEW_RESPONSE),
         "price": _make_mock_agent("price-agent", GOOD_PRICE_RESPONSE),
         "policy": _make_mock_agent("policy-agent", GOOD_POLICY_RESPONSE),
@@ -179,12 +180,14 @@ async def test_orchestrator_routes_recommendation_query(judge: LLMJudge):
         "Find me budget smartphones under $300", context={}
     )
 
-    print(f"\nIntent: {intent_result.intent.value} (conf={intent_result.confidence:.2f})")
+    print(
+        f"\nIntent: {intent_result.intent.value} (conf={intent_result.confidence:.2f})"
+    )
     print(f"Reasoning: {intent_result.reasoning}")
 
-    assert intent_result.intent == IntentType.RECOMMENDATION, (
-        f"Expected RECOMMENDATION, got {intent_result.intent.value}"
-    )
+    assert (
+        intent_result.intent == IntentType.RECOMMENDATION
+    ), f"Expected RECOMMENDATION, got {intent_result.intent.value}"
     orch._registry["recommendation"].process.assert_called_once()
     assert response.success
 
@@ -199,9 +202,9 @@ async def test_orchestrator_routes_review_query(judge: LLMJudge):
 
     print(f"\nIntent: {intent_result.intent.value}")
 
-    assert intent_result.intent == IntentType.REVIEW, (
-        f"Expected REVIEW, got {intent_result.intent.value}"
-    )
+    assert (
+        intent_result.intent == IntentType.REVIEW
+    ), f"Expected REVIEW, got {intent_result.intent.value}"
     orch._registry["review"].process.assert_called_once()
 
 
@@ -215,9 +218,9 @@ async def test_orchestrator_routes_policy_query(judge: LLMJudge):
 
     print(f"\nIntent: {intent_result.intent.value}")
 
-    assert intent_result.intent == IntentType.POLICY, (
-        f"Expected POLICY, got {intent_result.intent.value}"
-    )
+    assert (
+        intent_result.intent == IntentType.POLICY
+    ), f"Expected POLICY, got {intent_result.intent.value}"
     orch._registry["policy"].process.assert_called_once()
 
 
@@ -231,14 +234,16 @@ async def test_orchestrator_routes_price_query(judge: LLMJudge):
 
     print(f"\nIntent: {intent_result.intent.value}")
 
-    assert intent_result.intent == IntentType.PRICE, (
-        f"Expected PRICE, got {intent_result.intent.value}"
-    )
+    assert (
+        intent_result.intent == IntentType.PRICE
+    ), f"Expected PRICE, got {intent_result.intent.value}"
     orch._registry["price"].process.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_orchestrator_routes_comparison_to_recommendation_with_flag(judge: LLMJudge):
+async def test_orchestrator_routes_comparison_to_recommendation_with_flag(
+    judge: LLMJudge,
+):
     """Comparison queries should route to recommendation agent with compare_mode=True."""
     orch = _make_orchestrator_with_real_classifier()
     response, intent_result = await orch.handle(
@@ -252,9 +257,9 @@ async def test_orchestrator_routes_comparison_to_recommendation_with_flag(judge:
 
     # Verify compare_mode flag was injected
     call_context = orch._registry["recommendation"].process.call_args[0][1]
-    assert call_context.get("compare_mode") is True, (
-        f"compare_mode not set in context: {call_context}"
-    )
+    assert (
+        call_context.get("compare_mode") is True
+    ), f"compare_mode not set in context: {call_context}"
 
 
 @pytest.mark.asyncio
@@ -288,9 +293,9 @@ async def test_orchestrator_passes_price_hints_to_agent(judge: LLMJudge):
     # Classifier should have extracted price range
     # (Either max_price or min_price should be in hints)
     has_price_hint = "max_price" in structured_hints or "min_price" in structured_hints
-    assert has_price_hint, (
-        f"No price hints passed to agent. Structured hints: {structured_hints}"
-    )
+    assert (
+        has_price_hint
+    ), f"No price hints passed to agent. Structured hints: {structured_hints}"
 
 
 @pytest.mark.asyncio
@@ -415,7 +420,9 @@ async def test_orchestrator_returns_response_for_all_intent_types(judge: LLMJudg
 
     for query in test_queries:
         response, intent_result = await orch.handle(query, context={})
-        print(f"\n  Q: {query!r} → intent={intent_result.intent.value} success={response.success}")
-        assert response.success or response.data, (
-            f"Orchestrator returned empty response for: {query!r}"
+        print(
+            f"\n  Q: {query!r} → intent={intent_result.intent.value} success={response.success}"
         )
+        assert (
+            response.success or response.data
+        ), f"Orchestrator returned empty response for: {query!r}"

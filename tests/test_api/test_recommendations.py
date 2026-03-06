@@ -20,7 +20,8 @@ def make_success_response(recommendations=None):
         success=True,
         data={
             "query": "budget phones",
-            "recommendations": recommendations or [
+            "recommendations": recommendations
+            or [
                 {
                     "id": "PROD001",
                     "name": "Budget Phone X1",
@@ -81,7 +82,15 @@ class TestRecommendationsEndpoint:
             )
         assert resp.status_code == 200
         rec = resp.json()["recommendations"][0]
-        for field in ("id", "name", "price", "category", "relevance_score", "reason", "image_url"):
+        for field in (
+            "id",
+            "name",
+            "price",
+            "category",
+            "relevance_score",
+            "reason",
+            "image_url",
+        ):
             assert field in rec, f"Missing field: {field}"
 
     def test_query_too_short_returns_422(self):
@@ -96,9 +105,7 @@ class TestRecommendationsEndpoint:
 
     def test_agent_failure_returns_500(self):
         """When agent returns success=False, endpoint returns 500."""
-        error_response = AgentResponse(
-            success=False, data={}, error="LLM timeout"
-        )
+        error_response = AgentResponse(success=False, data={}, error="LLM timeout")
         with patch(
             "app.api.v1.recommendations._agent.process",
             new_callable=AsyncMock,
@@ -160,17 +167,19 @@ class TestRecommendationsEndpoint:
         with patch(
             "app.api.v1.recommendations._agent.process",
             new_callable=AsyncMock,
-            return_value=make_success_response(recommendations=[
-                {
-                    "id": "PROD002",
-                    "name": "Phone Y",
-                    "price": 400.0,
-                    "category": "smartphones",
-                    "relevance_score": 0.8,
-                    "reason": "Good",
-                    "image_url": test_url
-                }
-            ])
+            return_value=make_success_response(
+                recommendations=[
+                    {
+                        "id": "PROD002",
+                        "name": "Phone Y",
+                        "price": 400.0,
+                        "category": "smartphones",
+                        "relevance_score": 0.8,
+                        "reason": "Good",
+                        "image_url": test_url,
+                    }
+                ]
+            ),
         ):
             resp = client.post(
                 "/api/v1/recommendations",

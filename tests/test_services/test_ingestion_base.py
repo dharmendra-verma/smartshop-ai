@@ -5,7 +5,6 @@ import pandas as pd
 from pathlib import Path
 from dataclasses import dataclass
 
-from app.schemas.ingestion import IngestionResult
 from app.services.ingestion.base import DataIngestionPipeline
 
 
@@ -74,9 +73,7 @@ class TestDataIngestionPipeline:
 
     def test_batch_processing(self, db_session, tmp_path):
         csv_file = tmp_path / "test.csv"
-        rows = "name,value\n" + "\n".join(
-            f"Item{i},{i}" for i in range(10)
-        )
+        rows = "name,value\n" + "\n".join(f"Item{i},{i}" for i in range(10))
         csv_file.write_text(rows)
 
         ingester = ConcreteIngester(db_session=db_session, batch_size=3)

@@ -75,7 +75,8 @@ async def _eval(agent, judge, query, context=None, min_overall=0.65):
 async def test_general_greeting_redirects_to_shopping(agent, judge: LLMJudge):
     """Greeting should receive a friendly, shopping-focused response."""
     score = await _eval(
-        agent, judge,
+        agent,
+        judge,
         query="Hello! What can you help me with?",
         min_overall=0.70,
     )
@@ -93,7 +94,8 @@ async def test_general_casual_hi(agent, judge: LLMJudge):
 async def test_general_introductory_question(agent, judge: LLMJudge):
     """User asking what the assistant does should get a clear overview."""
     score = await _eval(
-        agent, judge,
+        agent,
+        judge,
         query="What kind of things can you help me with?",
         min_overall=0.70,
     )
@@ -167,9 +169,7 @@ async def test_general_response_is_concise(agent, judge: LLMJudge):
     assert result.success
     # Rough length check — should not be an essay
     word_count = len(response_text.split())
-    assert word_count <= 120, (
-        f"Response too long ({word_count} words): {response_text}"
-    )
+    assert word_count <= 120, f"Response too long ({word_count} words): {response_text}"
 
 
 @pytest.mark.asyncio
@@ -182,8 +182,15 @@ async def test_general_response_mentions_shopping_capabilities(agent, judge: LLM
 
     # Check that the response mentions shopping-related topics
     keywords = [
-        "recommend", "product", "review", "price", "policy",
-        "shop", "compari", "budget", "help",
+        "recommend",
+        "product",
+        "review",
+        "price",
+        "policy",
+        "shop",
+        "compari",
+        "budget",
+        "help",
     ]
     response_lower = response_text.lower()
     matches = [kw for kw in keywords if kw in response_lower]
@@ -199,7 +206,8 @@ async def test_general_response_mentions_shopping_capabilities(agent, judge: LLM
 async def test_general_helpfulness_score(agent, judge: LLMJudge):
     """Helpfulness should be at least 0.65 for an intro greeting."""
     score = await _eval(
-        agent, judge,
+        agent,
+        judge,
         query="What can I do here?",
         min_overall=0.65,
     )
@@ -226,9 +234,9 @@ async def test_general_fallback_message_quality(judge: LLMJudge):
         context="This is the hardcoded fallback message shown when the agent fails.",
     )
     print(f"\nFallback score: {score}")
-    assert score.overall >= 0.60, (
-        f"Fallback message quality too low: {score.overall:.2f}"
-    )
+    assert (
+        score.overall >= 0.60
+    ), f"Fallback message quality too low: {score.overall:.2f}"
     assert score.helpfulness >= 0.55
 
 

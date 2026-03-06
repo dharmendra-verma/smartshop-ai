@@ -46,7 +46,9 @@ def _setup_list_products_mock(db, products_with_counts=None, total=None):
     # The join/group query chain — returns (product, count) tuples
     join_query = db.query.return_value.outerjoin.return_value.group_by.return_value
     join_query.filter.return_value = join_query  # filter returns self
-    join_query.offset.return_value.limit.return_value.all.return_value = products_with_counts
+    join_query.offset.return_value.limit.return_value.all.return_value = (
+        products_with_counts
+    )
 
     # The count query chain — separate db.query(Product)
     # Since db.query is called twice, we need side_effect
@@ -58,11 +60,13 @@ def _setup_list_products_mock(db, products_with_counts=None, total=None):
     # Second call: db.query(Product) -> count chain
     original_query = db.query
     call_count = {"n": 0}
+
     def query_side_effect(*args):
         call_count["n"] += 1
         if call_count["n"] == 1:
             return original_query.return_value
         return count_query
+
     db.query.side_effect = query_side_effect
 
 

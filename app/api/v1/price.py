@@ -7,7 +7,12 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.agents.dependencies import AgentDependencies
 from app.agents.price.agent import PriceComparisonAgent
-from app.schemas.price import PriceCompareRequest, PriceCompareResponse, ProductComparison, PricePoint
+from app.schemas.price import (
+    PriceCompareRequest,
+    PriceCompareResponse,
+    ProductComparison,
+    PricePoint,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

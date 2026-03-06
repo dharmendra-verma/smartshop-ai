@@ -44,11 +44,15 @@ class TestProductIngestionSchema:
 
     def test_invalid_price_zero(self):
         with pytest.raises(ValidationError):
-            ProductIngestionSchema(id="SP0003", name="Test", price=0, category="General")
+            ProductIngestionSchema(
+                id="SP0003", name="Test", price=0, category="General"
+            )
 
     def test_invalid_price_negative(self):
         with pytest.raises(ValidationError):
-            ProductIngestionSchema(id="SP0004", name="Test", price=-10.0, category="General")
+            ProductIngestionSchema(
+                id="SP0004", name="Test", price=-10.0, category="General"
+            )
 
     def test_price_rounding(self):
         product = ProductIngestionSchema(
@@ -76,11 +80,15 @@ class TestProductIngestionSchema:
 
     def test_invalid_rating_too_high(self):
         with pytest.raises(ValidationError):
-            ProductIngestionSchema(id="SP0009", name="Test", price=10.0, category="General", rating=6.0)
+            ProductIngestionSchema(
+                id="SP0009", name="Test", price=10.0, category="General", rating=6.0
+            )
 
     def test_invalid_stock_negative(self):
         with pytest.raises(ValidationError):
-            ProductIngestionSchema(id="SP0010", name="Test", price=10.0, category="General", stock=-1)
+            ProductIngestionSchema(
+                id="SP0010", name="Test", price=10.0, category="General", stock=-1
+            )
 
 
 class TestReviewIngestionSchema:
@@ -113,9 +121,7 @@ class TestReviewIngestionSchema:
 
     def test_invalid_sentiment(self):
         with pytest.raises(ValidationError):
-            ReviewIngestionSchema(
-                product_id="SP0001", rating=3.0, sentiment="amazing"
-            )
+            ReviewIngestionSchema(product_id="SP0001", rating=3.0, sentiment="amazing")
 
     def test_clean_text_whitespace(self):
         review = ReviewIngestionSchema(
@@ -124,9 +130,7 @@ class TestReviewIngestionSchema:
         assert review.text == "hello world"
 
     def test_clean_text_empty_to_none(self):
-        review = ReviewIngestionSchema(
-            product_id="SP0001", rating=4.0, text="   "
-        )
+        review = ReviewIngestionSchema(product_id="SP0001", rating=4.0, text="   ")
         assert review.text is None
 
     def test_optional_fields(self):

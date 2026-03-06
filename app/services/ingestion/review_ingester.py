@@ -87,7 +87,9 @@ class ReviewIngester(DataIngestionPipeline[ReviewIngestionSchema]):
                     review_date = datetime.strptime(date_val.strip(), "%m/%d/%Y").date()
                 except ValueError:
                     try:
-                        review_date = datetime.strptime(date_val.strip(), "%Y-%m-%d").date()
+                        review_date = datetime.strptime(
+                            date_val.strip(), "%Y-%m-%d"
+                        ).date()
                     except ValueError:
                         logger.warning(f"Could not parse date: {date_val}")
             else:

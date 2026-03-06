@@ -83,7 +83,8 @@ async def get_categories(ctx: RunContext[AgentDependencies]) -> list[str]:
     """
     db: Session = ctx.deps.db
     from sqlalchemy import distinct
-    results = db.query(distinct(Product.category)).filter(
-        Product.category.isnot(None)
-    ).all()
+
+    results = (
+        db.query(distinct(Product.category)).filter(Product.category.isnot(None)).all()
+    )
     return sorted([r[0] for r in results if r[0]])

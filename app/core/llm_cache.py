@@ -18,9 +18,12 @@ def get_llm_cache():
         return _llm_cache
     from app.core.config import get_settings
     from app.core.cache import RedisCache, TTLCache
+
     settings = get_settings()
     try:
-        cache = RedisCache(settings.REDIS_URL, default_ttl=_LLM_CACHE_TTL, key_prefix="llm:")
+        cache = RedisCache(
+            settings.REDIS_URL, default_ttl=_LLM_CACHE_TTL, key_prefix="llm:"
+        )
         cache._client.ping()
         _llm_cache = cache
         logger.info("LLMCache: using Redis")
@@ -50,7 +53,9 @@ def get_cached_llm_response(agent_name: str, query: str) -> AgentResponse | None
     return None
 
 
-def set_cached_llm_response(agent_name: str, query: str, response: AgentResponse) -> None:
+def set_cached_llm_response(
+    agent_name: str, query: str, response: AgentResponse
+) -> None:
     if response.success:
         get_llm_cache().set(_cache_key(agent_name, query), response.model_dump())
         logger.debug("LLMCache SET: agent=%s", agent_name)

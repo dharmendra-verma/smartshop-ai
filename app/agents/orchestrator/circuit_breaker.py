@@ -8,24 +8,32 @@ State machine: CLOSED ─(3 failures)→ OPEN ─(30s timeout)→ HALF_OPEN
 
 When OPEN, is_available() returns False and the orchestrator falls back to the general agent.
 """
-import time, logging
+
+import time
+import logging
 from enum import Enum
 
 logger = logging.getLogger(__name__)
 
+
 class CircuitState(str, Enum):
-    CLOSED    = "closed"
-    OPEN      = "open"
+    CLOSED = "closed"
+    OPEN = "open"
     HALF_OPEN = "half_open"
 
+
 class CircuitBreaker:
-    def __init__(self, agent_name: str, failure_threshold: int = 3,
-                 recovery_timeout: float = 30.0):
-        self.agent_name        = agent_name
-        self._threshold        = failure_threshold
+    def __init__(
+        self,
+        agent_name: str,
+        failure_threshold: int = 3,
+        recovery_timeout: float = 30.0,
+    ):
+        self.agent_name = agent_name
+        self._threshold = failure_threshold
         self._recovery_timeout = recovery_timeout
-        self._state            = CircuitState.CLOSED
-        self._failures         = 0
+        self._state = CircuitState.CLOSED
+        self._failures = 0
         self._last_failure: float = 0.0
 
     @property
@@ -42,12 +50,17 @@ class CircuitBreaker:
     def record_success(self):
         if self._state != CircuitState.CLOSED:
             logger.info("CircuitBreaker[%s]: → CLOSED", self.agent_name)
-        self._state = CircuitState.CLOSED; self._failures = 0
+        self._state = CircuitState.CLOSED
+        self._failures = 0
 
     def record_failure(self):
-        self._failures += 1; self._last_failure = time.time()
+        self._failures += 1
+        self._last_failure = time.time()
         if self._failures >= self._threshold or self._state == CircuitState.HALF_OPEN:
             if self._state != CircuitState.OPEN:
-                logger.warning("CircuitBreaker[%s]: → OPEN (failures=%d)",
-                               self.agent_name, self._failures)
+                logger.warning(
+                    "CircuitBreaker[%s]: → OPEN (failures=%d)",
+                    self.agent_name,
+                    self._failures,
+                )
             self._state = CircuitState.OPEN

@@ -17,6 +17,7 @@ WARM_QUERIES = [
 async def warm_caches() -> None:
     """Pre-warm LLM response cache with popular queries. Called at startup."""
     from app.core.llm_cache import get_cached_llm_response
+
     warmed = 0
     for agent_name, query in WARM_QUERIES:
         if get_cached_llm_response(agent_name, query) is not None:

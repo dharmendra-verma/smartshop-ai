@@ -4,7 +4,6 @@ import logging
 from pathlib import Path
 
 import pandas as pd
-from sqlalchemy.orm import Session
 
 from app.models.product import Product
 from app.schemas.ingestion import ProductIngestionSchema
@@ -48,7 +47,9 @@ class ProductIngester(DataIngestionPipeline[ProductIngestionSchema]):
         """Validate a product row."""
         price = row.get("price", 0)
         if isinstance(price, str):
-            price = price.replace("\u20b9", "").replace("$", "").replace(",", "").strip()
+            price = (
+                price.replace("\u20b9", "").replace("$", "").replace(",", "").strip()
+            )
             price = float(price) if price else 0
 
         stock = row.get("stock")
@@ -58,14 +59,24 @@ class ProductIngester(DataIngestionPipeline[ProductIngestionSchema]):
         rating = float(rating) if pd.notna(rating) else None
 
         image_url = row.get("image_url") or row.get("picture")
-        image_url = str(image_url).strip() if pd.notna(image_url) and image_url else None
+        image_url = (
+            str(image_url).strip() if pd.notna(image_url) and image_url else None
+        )
 
         return ProductIngestionSchema(
             id=str(row.get("id", "")).strip(),
             name=str(row.get("name", "")).strip(),
-            description=str(row.get("description", "")) if pd.notna(row.get("description")) else None,
+            description=(
+                str(row.get("description", ""))
+                if pd.notna(row.get("description"))
+                else None
+            ),
             price=float(price),
-            brand=str(row.get("brand", "")).strip() if pd.notna(row.get("brand")) else None,
+            brand=(
+                str(row.get("brand", "")).strip()
+                if pd.notna(row.get("brand"))
+                else None
+            ),
             category=str(row.get("category", "General")).strip(),
             stock=stock,
             rating=rating,

@@ -9,6 +9,7 @@ from app.core.config import get_settings
 
 class Base(DeclarativeBase):
     """Base class for all SQLAlchemy models."""
+
     pass
 
 
@@ -37,7 +38,9 @@ def get_session_factory(engine: Engine | None = None) -> sessionmaker:
     if engine is not None:
         return sessionmaker(autocommit=False, autoflush=False, bind=engine)
     if _session_factory is None:
-        _session_factory = sessionmaker(autocommit=False, autoflush=False, bind=get_engine())
+        _session_factory = sessionmaker(
+            autocommit=False, autoflush=False, bind=get_engine()
+        )
     return _session_factory
 
 

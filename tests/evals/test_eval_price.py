@@ -167,7 +167,9 @@ async def _eval(agent, deps, judge, query, context_extras=None, min_overall=0.60
 async def test_price_best_deal_for_sony_headphones(agent, deps, judge: LLMJudge):
     """Agent should identify the best price for Sony WH-1000XM5 across retailers."""
     await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="What is the best price for Sony WH-1000XM5 headphones?",
         context_extras={"product_id": "PROD006"},
         min_overall=0.60,
@@ -211,7 +213,9 @@ async def test_price_is_competitive_assessment(agent, deps, judge: LLMJudge):
 async def test_price_comparison_laptop(agent, deps, judge: LLMJudge):
     """Agent should compare laptop prices and give a value assessment."""
     await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="Where can I find the cheapest UltraBook Pro 15?",
         context_extras={"product_id": "PROD004"},
         min_overall=0.58,
@@ -222,15 +226,15 @@ async def test_price_comparison_laptop(agent, deps, judge: LLMJudge):
 async def test_price_response_relevance(agent, deps, judge: LLMJudge):
     """Price response should be highly relevant to the price query."""
     score, result = await _eval(
-        agent, deps, judge,
+        agent,
+        deps,
+        judge,
         query="Find the best price for Sony WH-1000XM5",
         context_extras={"product_id": "PROD006"},
         min_overall=0.58,
     )
     if result.success:
-        assert score.relevance >= 0.55, (
-            f"Relevance too low: {score.relevance:.2f}"
-        )
+        assert score.relevance >= 0.55, f"Relevance too low: {score.relevance:.2f}"
 
 
 @pytest.mark.asyncio

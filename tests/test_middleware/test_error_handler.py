@@ -1,7 +1,6 @@
 """Tests for ErrorHandlerMiddleware."""
 
 import pytest
-from unittest.mock import patch
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 

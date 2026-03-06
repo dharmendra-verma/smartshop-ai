@@ -1,4 +1,5 @@
 """Unified chat endpoint."""
+
 import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -6,10 +7,14 @@ from app.core.database import get_db
 from app.agents.dependencies import AgentDependencies
 from app.agents.orchestrator.orchestrator import get_orchestrator
 from app.schemas.chat import ChatRequest, ChatResponse
-from app.services.session.session_manager import get_session_manager, build_enriched_query
+from app.services.session.session_manager import (
+    get_session_manager,
+    build_enriched_query,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
 
 @router.post("/chat", response_model=ChatResponse, status_code=200)
 async def chat(request: ChatRequest, db: Session = Depends(get_db)) -> ChatResponse:
@@ -27,7 +32,11 @@ async def chat(request: ChatRequest, db: Session = Depends(get_db)) -> ChatRespo
 
     # Orchestrate (SCRUM-16)
     deps = AgentDependencies.from_db(db)
-    context = {"deps": deps, "max_results": request.max_results or 5, "session_id": session_id}
+    context = {
+        "deps": deps,
+        "max_results": request.max_results or 5,
+        "session_id": session_id,
+    }
 
     orchestrator = get_orchestrator()
     agent_response, intent_result = await orchestrator.handle(enriched_query, context)
@@ -44,12 +53,17 @@ async def chat(request: ChatRequest, db: Session = Depends(get_db)) -> ChatRespo
         message=request.message,
         intent=intent_result.intent.value,
         confidence=intent_result.confidence,
-        entities={"product_name": intent_result.product_name, "category": intent_result.category,
-                  "max_price": intent_result.max_price, "min_price": intent_result.min_price},
+        entities={
+            "product_name": intent_result.product_name,
+            "category": intent_result.category,
+            "max_price": intent_result.max_price,
+            "min_price": intent_result.min_price,
+        },
         agent_used=agent_response.data.get("agent", "unknown"),
         response=agent_response.data,
         success=True,
     )
+
 
 @router.delete("/chat/session/{session_id}", status_code=204)
 async def clear_session(session_id: str):

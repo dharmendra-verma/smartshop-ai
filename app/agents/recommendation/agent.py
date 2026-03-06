@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class _ProductResult(BaseModel):
     """Internal: a single product the LLM has selected."""
+
     product_id: str
     relevance_score: float = Field(ge=0.0, le=1.0)
     reason: str
@@ -25,6 +26,7 @@ class _ProductResult(BaseModel):
 
 class _RecommendationOutput(BaseModel):
     """Internal: the full structured output from pydantic-ai."""
+
     recommendations: list[_ProductResult]
     reasoning_summary: str
 
@@ -80,6 +82,7 @@ class RecommendationAgent(BaseAgent):
             )
 
         from app.core.llm_cache import get_cached_llm_response, set_cached_llm_response
+
         cached = get_cached_llm_response(self.name, query)
         if cached:
             return cached
@@ -89,7 +92,9 @@ class RecommendationAgent(BaseAgent):
         enriched_query = _build_enriched_query(query, structured_hints, max_results)
 
         try:
-            result = await self._agent.run(enriched_query, deps=deps, usage_limits=UsageLimits(request_limit=15))
+            result = await self._agent.run(
+                enriched_query, deps=deps, usage_limits=UsageLimits(request_limit=15)
+            )
             output: _RecommendationOutput = result.output
 
             recommendations = _hydrate_recommendations(output, deps)
@@ -112,6 +117,7 @@ class RecommendationAgent(BaseAgent):
         except Exception as exc:
             from app.core.exceptions import AgentRateLimitError, AgentTimeoutError
             from app.core.alerting import record_failure
+
             exc_type = type(exc).__name__
             if "RateLimitError" in exc_type:
                 record_failure(self.name)
@@ -164,11 +170,10 @@ def _hydrate_recommendations(
     Drops any product_id the LLM hallucinated (not in DB).
     """
     from app.models.product import Product
+
     results = []
     for rec in output.recommendations:
-        product = deps.db.query(Product).filter(
-            Product.id == rec.product_id
-        ).first()
+        product = deps.db.query(Product).filter(Product.id == rec.product_id).first()
         if product:
             data = product.to_dict()
             data["relevance_score"] = rec.relevance_score

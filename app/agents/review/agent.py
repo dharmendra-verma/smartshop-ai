@@ -25,6 +25,7 @@ class _ThemeResult(BaseModel):
 
 class _ReviewSummaryOutput(BaseModel):
     """Typed output from pydantic-ai for review summarization."""
+
     product_id: str
     product_name: str
     total_reviews: int
@@ -92,6 +93,7 @@ class ReviewSummarizationAgent(BaseAgent):
             )
 
         from app.core.llm_cache import get_cached_llm_response, set_cached_llm_response
+
         llm_cached = get_cached_llm_response(self.name, query)
         if llm_cached:
             return llm_cached
@@ -110,7 +112,9 @@ class ReviewSummarizationAgent(BaseAgent):
                 return AgentResponse(success=True, data=cached)
 
         try:
-            result = await self._agent.run(enriched, deps=deps, usage_limits=UsageLimits(request_limit=15))
+            result = await self._agent.run(
+                enriched, deps=deps, usage_limits=UsageLimits(request_limit=15)
+            )
             output: _ReviewSummaryOutput = result.output
 
             data = {
@@ -146,6 +150,7 @@ class ReviewSummarizationAgent(BaseAgent):
         except Exception as exc:
             from app.core.exceptions import AgentRateLimitError, AgentTimeoutError
             from app.core.alerting import record_failure
+
             exc_type = type(exc).__name__
             if "RateLimitError" in exc_type:
                 record_failure(self.name)
@@ -178,5 +183,7 @@ def _build_enriched_query(
     parts = [query]
     if product_id:
         parts.append(f"Product ID (use directly, skip find_product): {product_id}")
-    parts.append(f"Fetch up to {max_reviews // 2} positive and {max_reviews // 2} negative reviews.")
+    parts.append(
+        f"Fetch up to {max_reviews // 2} positive and {max_reviews // 2} negative reviews."
+    )
     return "\n".join(parts)

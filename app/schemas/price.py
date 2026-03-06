@@ -6,12 +6,16 @@ from pydantic import BaseModel, Field
 
 class PriceCompareRequest(BaseModel):
     """Request body for POST /api/v1/price/compare."""
+
     query: str = Field(
-        ..., min_length=3, max_length=500,
-        description="Comparison query, e.g. 'Compare Samsung S24 and Google Pixel 8'"
+        ...,
+        min_length=3,
+        max_length=500,
+        description="Comparison query, e.g. 'Compare Samsung S24 and Google Pixel 8'",
     )
-    max_results: int = Field(default=4, ge=1, le=10,
-                              description="Max products to include in comparison")
+    max_results: int = Field(
+        default=4, ge=1, le=10, description="Max products to include in comparison"
+    )
 
 
 class PricePoint(BaseModel):
@@ -36,6 +40,7 @@ class ProductComparison(BaseModel):
 
 class PriceCompareResponse(BaseModel):
     """Response body for POST /api/v1/price/compare."""
+
     query: str
     products: list[ProductComparison]
     best_deal: str

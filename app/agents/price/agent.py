@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class _PricePoint(BaseModel):
     """Price at a specific source."""
+
     source: str
     price: float
     is_best: bool = False
@@ -26,6 +27,7 @@ class _PricePoint(BaseModel):
 
 class _ProductComparison(BaseModel):
     """Comparison data for one product."""
+
     product_id: str
     name: str
     our_price: float
@@ -41,9 +43,14 @@ class _ProductComparison(BaseModel):
 
 class _ComparisonOutput(BaseModel):
     """Full structured output from the price comparison LLM."""
+
     products: list[_ProductComparison]
-    best_deal: str = Field(description="Name of the product offering best overall value")
-    recommendation: str = Field(description="2-3 sentence summary of the best deal and why")
+    best_deal: str = Field(
+        description="Name of the product offering best overall value"
+    )
+    recommendation: str = Field(
+        description="2-3 sentence summary of the best deal and why"
+    )
 
 
 def _build_agent(model_name: str) -> Agent:
@@ -84,12 +91,15 @@ class PriceComparisonAgent(BaseAgent):
             )
 
         from app.core.llm_cache import get_cached_llm_response, set_cached_llm_response
+
         cached = get_cached_llm_response(self.name, query)
         if cached:
             return cached
 
         try:
-            result = await self._agent.run(query, deps=deps, usage_limits=UsageLimits(request_limit=15))
+            result = await self._agent.run(
+                query, deps=deps, usage_limits=UsageLimits(request_limit=15)
+            )
             output: _ComparisonOutput = result.output
 
             response = AgentResponse(
@@ -109,6 +119,7 @@ class PriceComparisonAgent(BaseAgent):
         except Exception as exc:
             from app.core.exceptions import AgentRateLimitError, AgentTimeoutError
             from app.core.alerting import record_failure
+
             exc_type = type(exc).__name__
             if "RateLimitError" in exc_type:
                 record_failure(self.name)

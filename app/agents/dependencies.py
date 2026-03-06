@@ -13,6 +13,7 @@ class AgentDependencies:
     Shared by: RecommendationAgent, ReviewAgent, PriceAgent, PolicyAgent, Orchestrator.
     Extended by individual agents if they need additional deps (e.g. vector store for SCRUM-15).
     """
+
     db: Session
     settings: Settings
 

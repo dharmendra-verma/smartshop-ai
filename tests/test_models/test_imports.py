@@ -26,6 +26,7 @@ def test_policy_import():
 def test_all_exports():
     """Test that __all__ contains expected models."""
     import app.models as models
+
     assert "Base" in models.__all__
     assert "Product" in models.__all__
     assert "Review" in models.__all__

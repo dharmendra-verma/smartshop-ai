@@ -1,14 +1,15 @@
 """Tests for PriceComparisonAgent."""
+
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from app.agents.price.agent import PriceComparisonAgent
-from app.agents.base import AgentResponse
 
 
 @pytest.fixture
 def mock_deps(db_session):
     from app.agents.dependencies import AgentDependencies
     from app.core.config import get_settings
+
     return AgentDependencies(db=db_session, settings=get_settings())
 
 
@@ -33,19 +34,27 @@ async def test_process_returns_success(mock_deps):
     product_mock.brand = "Samsung"
     product_mock.category = "smartphones"
     product_mock.is_cached = False
-    
+
     # model_dump needs to be a method that returns a dict
     product_mock.model_dump.return_value = {
-        "product_id": "PROD001", "name": "Samsung Galaxy S24",
-        "our_price": 799.99, "competitor_prices": product_mock.competitor_prices, 
+        "product_id": "PROD001",
+        "name": "Samsung Galaxy S24",
+        "our_price": 799.99,
+        "competitor_prices": product_mock.competitor_prices,
         "best_price": 699.99,
-        "best_source": "Walmart", "savings_pct": 12.5, "rating": 4.5,
-        "brand": "Samsung", "category": "smartphones", "is_cached": False,
+        "best_source": "Walmart",
+        "savings_pct": 12.5,
+        "rating": 4.5,
+        "brand": "Samsung",
+        "category": "smartphones",
+        "is_cached": False,
     }
 
     mock_output.products = [product_mock]
     mock_output.best_deal = "Samsung Galaxy S24"
-    mock_output.recommendation = "Walmart offers the best price at $699.99, saving 12.5%."
+    mock_output.recommendation = (
+        "Walmart offers the best price at $699.99, saving 12.5%."
+    )
 
     with patch.object(agent._agent, "run", new_callable=AsyncMock) as mock_run:
         result_mock = MagicMock()
@@ -86,6 +95,7 @@ def test_price_agent_name():
 
 def test_mock_pricing_service_deterministic():
     from app.services.pricing.mock_pricing import MockPricingService
+
     service = MockPricingService()
     prices1 = service.get_prices("PROD001", 799.99)
     prices2 = service.get_prices("PROD001", 799.99)
@@ -94,6 +104,7 @@ def test_mock_pricing_service_deterministic():
 
 def test_mock_pricing_service_sources():
     from app.services.pricing.mock_pricing import MockPricingService
+
     service = MockPricingService()
     prices = service.get_prices("PROD001", 100.0)
     assert set(prices.keys()) == {"Amazon", "BestBuy", "Walmart"}

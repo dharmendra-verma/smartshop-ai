@@ -7,6 +7,7 @@ from typing import Optional
 
 class RecommendationRequest(BaseModel):
     """POST /api/v1/recommendations request body."""
+
     query: str = Field(
         ...,
         description="Natural language query, e.g. 'budget smartphones under $500'",
@@ -22,6 +23,7 @@ class RecommendationRequest(BaseModel):
 
 class ProductRecommendation(BaseModel):
     """A single recommended product with relevance context."""
+
     id: str
     name: str
     price: Decimal
@@ -36,6 +38,7 @@ class ProductRecommendation(BaseModel):
 
 class RecommendationResponse(BaseModel):
     """POST /api/v1/recommendations response."""
+
     query: str
     recommendations: list[ProductRecommendation]
     total_found: int

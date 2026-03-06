@@ -1,8 +1,6 @@
 """Server-side session store — Redis primary, TTLCache fallback."""
 
-import json
 import logging
-from typing import Any
 
 logger = logging.getLogger(__name__)
 

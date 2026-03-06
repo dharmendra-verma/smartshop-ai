@@ -6,6 +6,7 @@ from typing import Optional
 
 class ReviewSummarizationRequest(BaseModel):
     """POST /api/v1/reviews/summarize request body."""
+
     query: str = Field(
         ...,
         description="Natural language query, e.g. 'Summarize reviews for iPhone 15'",
@@ -27,6 +28,7 @@ class ReviewSummarizationRequest(BaseModel):
 
 class SentimentTheme(BaseModel):
     """A single extracted theme with confidence score."""
+
     theme: str = Field(description="Short theme description, e.g. 'Battery life'")
     confidence: float = Field(ge=0.0, le=1.0, description="0.0-1.0 confidence score")
     example_quote: Optional[str] = Field(
@@ -37,6 +39,7 @@ class SentimentTheme(BaseModel):
 
 class RatingDistribution(BaseModel):
     """Count of reviews per star rating."""
+
     one_star: int = 0
     two_star: int = 0
     three_star: int = 0
@@ -46,11 +49,13 @@ class RatingDistribution(BaseModel):
 
 class ReviewSummarizationResponse(BaseModel):
     """POST /api/v1/reviews/summarize response."""
+
     product_id: str
     product_name: str
     total_reviews: int
     sentiment_score: float = Field(
-        ge=0.0, le=1.0,
+        ge=0.0,
+        le=1.0,
         description="Overall sentiment: 0.0 (very negative) to 1.0 (very positive)",
     )
     average_rating: float = Field(ge=0.0, le=5.0)
@@ -73,8 +78,10 @@ class ReviewSummarizationResponse(BaseModel):
 
 # --- SCRUM-61: Paginated raw reviews endpoint schemas ---
 
+
 class ReviewItem(BaseModel):
     """Single review in a paginated list."""
+
     review_id: int
     product_id: str
     rating: float
@@ -85,6 +92,7 @@ class ReviewItem(BaseModel):
 
 class ReviewListResponse(BaseModel):
     """GET /api/v1/reviews/{product_id} response."""
+
     product_id: str
     product_name: str
     average_rating: Optional[float] = None

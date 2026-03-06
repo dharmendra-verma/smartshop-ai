@@ -35,6 +35,11 @@ def get_llm_cache():
 
 def reset_llm_cache():
     global _llm_cache
+    if _llm_cache is not None:
+        try:
+            _llm_cache.clear()
+        except Exception:
+            pass
     _llm_cache = None
 
 

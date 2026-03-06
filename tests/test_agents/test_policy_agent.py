@@ -75,22 +75,18 @@ async def test_policy_dependencies_constructed(mock_deps, mock_vs):
     from app.agents.policy.agent import PolicyDependencies
 
     agent = PolicyAgent()
-    captured = []
-
-    async def capture(query, deps, **kwargs):
-        captured.append(deps)
+    with patch.object(agent._agent, "run", new_callable=AsyncMock) as m:
         r = MagicMock()
         r.output.answer = "30 days."
         r.output.sources = ["return_policy"]
         r.output.confidence = "high"
-        return r
-
-    with patch.object(agent._agent, "run", side_effect=capture):
+        m.return_value = r
         await agent.process(
             "Return policy?", {"deps": mock_deps, "vector_store": mock_vs}
         )
-    assert isinstance(captured[0], PolicyDependencies)
-    assert captured[0].vector_store is mock_vs
+    call_kwargs = m.call_args.kwargs
+    assert isinstance(call_kwargs["deps"], PolicyDependencies)
+    assert call_kwargs["deps"].vector_store is mock_vs
 
 
 @pytest.mark.asyncio

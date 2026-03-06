@@ -1,6 +1,14 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from app.agents.policy.agent import PolicyAgent
+from app.core.llm_cache import reset_llm_cache
+
+
+@pytest.fixture(autouse=True)
+def _reset_cache():
+    reset_llm_cache()
+    yield
+    reset_llm_cache()
 
 
 @pytest.fixture

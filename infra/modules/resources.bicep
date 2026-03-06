@@ -7,9 +7,6 @@ param location string
 @description('ACR SKU')
 param acrSku string
 
-@description('PostgreSQL SKU')
-param dbSkuName string
-
 @description('Redis SKU')
 param redisSku string
 
@@ -24,13 +21,6 @@ param uiMinReplicas int
 
 @description('UI max replicas')
 param uiMaxReplicas int
-
-@description('PostgreSQL administrator login')
-param dbAdminLogin string
-
-@secure()
-@description('PostgreSQL administrator password')
-param dbAdminPassword string
 
 // Log Analytics Workspace
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
@@ -97,44 +87,8 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
   }
 }
 
-// PostgreSQL Flexible Server
-resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2023-06-01-preview' = {
-  name: 'smartshop-db-${environmentName}'
-  location: location
-  sku: {
-    name: dbSkuName
-    tier: 'Burstable'
-  }
-  properties: {
-    administratorLogin: dbAdminLogin
-    administratorLoginPassword: dbAdminPassword
-    version: '15'
-    storage: {
-      storageSizeGB: 32
-    }
-    backup: {
-      backupRetentionDays: 7
-      geoRedundantBackup: 'Disabled'
-    }
-    highAvailability: {
-      mode: 'Disabled'
-    }
-    authConfig: {
-      activeDirectoryAuth: 'Disabled'
-      passwordAuth: 'Enabled'
-    }
-  }
-}
-
-// PostgreSQL Database
-resource postgresDb 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-06-01-preview' = {
-  parent: postgres
-  name: 'smartshop_ai'
-  properties: {
-    charset: 'UTF8'
-    collation: 'en_US.utf8'
-  }
-}
+// PostgreSQL: Using external Supabase — no Azure-managed PostgreSQL needed.
+// Set DATABASE_URL as an environment variable on the Container Apps pointing to Supabase.
 
 // Redis Cache
 resource redis 'Microsoft.Cache/redis@2023-08-01' = {

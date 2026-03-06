@@ -5,7 +5,6 @@
     "environmentName": { "value": "prod" },
     "location": { "value": "eastus" },
     "acrSku": { "value": "Standard" },
-    "dbSkuName": { "value": "Standard_B2s" },
     "redisSku": { "value": "Basic" },
     "apiMinReplicas": { "value": 2 },
     "apiMaxReplicas": { "value": 5 },

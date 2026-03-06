@@ -120,10 +120,10 @@ class TestInfrastructure:
             content = f.read()
         assert "Microsoft.App/containerApps" in content
 
-    def test_bicep_has_postgres(self):
+    def test_bicep_mentions_supabase(self):
         with open(os.path.join(self.INFRA_DIR, "modules", "resources.bicep"), "r") as f:
             content = f.read()
-        assert "Microsoft.DBforPostgreSQL" in content
+        assert "Supabase" in content
 
     def test_bicep_has_redis(self):
         with open(os.path.join(self.INFRA_DIR, "modules", "resources.bicep"), "r") as f:

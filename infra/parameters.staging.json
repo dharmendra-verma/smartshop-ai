@@ -5,7 +5,6 @@
     "environmentName": { "value": "staging" },
     "location": { "value": "eastus" },
     "acrSku": { "value": "Basic" },
-    "dbSkuName": { "value": "Standard_B1ms" },
     "redisSku": { "value": "Basic" },
     "apiMinReplicas": { "value": 1 },
     "apiMaxReplicas": { "value": 3 },

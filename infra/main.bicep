@@ -9,9 +9,6 @@ param location string = 'eastus'
 @description('ACR SKU')
 param acrSku string = 'Basic'
 
-@description('PostgreSQL SKU name')
-param dbSkuName string = 'Standard_B1ms'
-
 @description('Redis SKU')
 param redisSku string = 'Basic'
 
@@ -27,13 +24,6 @@ param uiMinReplicas int = 1
 @description('UI maximum replicas')
 param uiMaxReplicas int = 3
 
-@description('PostgreSQL administrator login')
-param dbAdminLogin string = 'smartshopadmin'
-
-@secure()
-@description('PostgreSQL administrator password')
-param dbAdminPassword string
-
 // Resource Group
 resource rg 'Microsoft.Resources/resourceGroups@2023-07-01' = {
   name: 'rg-smartshop-${environmentName}'
@@ -48,14 +38,11 @@ module resources 'modules/resources.bicep' = {
     environmentName: environmentName
     location: location
     acrSku: acrSku
-    dbSkuName: dbSkuName
     redisSku: redisSku
     apiMinReplicas: apiMinReplicas
     apiMaxReplicas: apiMaxReplicas
     uiMinReplicas: uiMinReplicas
     uiMaxReplicas: uiMaxReplicas
-    dbAdminLogin: dbAdminLogin
-    dbAdminPassword: dbAdminPassword
   }
 }
 

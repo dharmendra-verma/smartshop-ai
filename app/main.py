@@ -63,18 +63,21 @@ async def startup_event():
 
     await warm_caches()
 
-    from app.agents.policy.agent import get_vector_store
-    from app.models.policy import Policy
-    from app.core.database import get_db
-
-    db = next(get_db())
     try:
-        policies = db.query(Policy).all()
-        if policies:
-            get_vector_store().load_or_build(policies)
-            logger.info("PolicyVectorStore ready with %d policies", len(policies))
-    finally:
-        db.close()
+        from app.agents.policy.agent import get_vector_store
+        from app.models.policy import Policy
+        from app.core.database import get_db
+
+        db = next(get_db())
+        try:
+            policies = db.query(Policy).all()
+            if policies:
+                get_vector_store().load_or_build(policies)
+                logger.info("PolicyVectorStore ready with %d policies", len(policies))
+        finally:
+            db.close()
+    except Exception as e:
+        logger.warning("Database unavailable at startup — skipping policy load: %s", e)
 
 
 @app.on_event("shutdown")

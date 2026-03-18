@@ -84,6 +84,7 @@ class ReviewSummarizationAgent(BaseAgent):
                      Optional 'product_id': str to skip name resolution.
                      Optional 'max_reviews': int (default 20).
         """
+        logger.info("ReviewSummarizationAgent invoked | query=%r", query[:100])
         deps: AgentDependencies = context.get("deps")
         if deps is None:
             return AgentResponse(
@@ -96,6 +97,7 @@ class ReviewSummarizationAgent(BaseAgent):
 
         llm_cached = get_cached_llm_response(self.name, query)
         if llm_cached:
+            logger.info("ReviewSummarizationAgent LLM cache hit | query=%r", query[:80])
             return llm_cached
 
         product_id: str | None = context.get("product_id")
@@ -115,6 +117,7 @@ class ReviewSummarizationAgent(BaseAgent):
             result = await self._agent.run(
                 enriched, deps=deps, usage_limits=UsageLimits(request_limit=15)
             )
+            usage_info = self.log_usage(result)
             output: _ReviewSummaryOutput = result.output
 
             data = {

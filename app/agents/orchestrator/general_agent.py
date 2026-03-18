@@ -32,10 +32,12 @@ class GeneralResponseAgent(BaseAgent):
         )
 
     async def process(self, query: str, context: dict[str, Any]) -> AgentResponse:
+        logger.info("GeneralResponseAgent invoked | query=%r", query[:100])
         try:
             result = await self._llm.run(
                 query, usage_limits=UsageLimits(request_limit=5)
             )
+            self.log_usage(result)
             return AgentResponse(
                 success=True, data={"answer": result.output.answer, "agent": self.name}
             )

@@ -82,6 +82,7 @@ class PriceComparisonAgent(BaseAgent):
         self._agent = _build_agent(model)
 
     async def process(self, query: str, context: dict[str, Any]) -> AgentResponse:
+        logger.info("PriceComparisonAgent invoked | query=%r", query[:100])
         deps: AgentDependencies = context.get("deps")
         if deps is None:
             return AgentResponse(
@@ -94,12 +95,14 @@ class PriceComparisonAgent(BaseAgent):
 
         cached = get_cached_llm_response(self.name, query)
         if cached:
+            logger.info("PriceComparisonAgent LLM cache hit | query=%r", query[:80])
             return cached
 
         try:
             result = await self._agent.run(
                 query, deps=deps, usage_limits=UsageLimits(request_limit=15)
             )
+            usage_info = self.log_usage(result)
             output: _ComparisonOutput = result.output
 
             response = AgentResponse(

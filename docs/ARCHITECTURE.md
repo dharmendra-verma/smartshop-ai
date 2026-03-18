@@ -348,7 +348,9 @@ graph LR
 | | Vector Store | FAISS | 1.7+ |
 | | Cache | Redis | 7+ |
 | **DevOps** | Containerization | Docker | Latest |
-| | Orchestration | Docker Compose | v3.8 |
+| | Orchestration | Docker Compose (local) / Azure Container Apps (cloud) | v3.8 / latest |
+| | CI/CD | GitHub Actions | 4 workflows |
+| | IaC | Azure Bicep | latest |
 | | Language | Python | 3.11+ |
 
 ---
@@ -370,65 +372,82 @@ graph LR
 └─────────────────────────────────────────┘
 ```
 
-### Production Environment (AWS Example)
+### Production Environment (Azure Container Apps)
 
 ```mermaid
 graph TB
-    subgraph "AWS Cloud"
-        subgraph "VPC"
-            ALB[Application Load Balancer]
+    subgraph "Azure Cloud"
+        subgraph "Resource Group (rg-smartshop-prod)"
+            ACR[Azure Container Registry]
 
-            subgraph "ECS Cluster"
-                API1[FastAPI Service 1]
-                API2[FastAPI Service 2]
-                UI1[Streamlit Service 1]
-                UI2[Streamlit Service 2]
+            subgraph "Container Apps Environment"
+                API1[smartshop-api-prod<br/>FastAPI :8000]
+                UI1[smartshop-ui-prod<br/>Streamlit :8501]
             end
 
-            subgraph "Data Services"
-                RDS[(RDS PostgreSQL)]
-                ElastiCache[(ElastiCache Redis)]
+            RedisCache[(Azure Cache for Redis)]
+
+            subgraph "Observability"
+                LogAnalytics[Log Analytics]
+                AppInsights[Application Insights]
             end
 
-            subgraph "Storage"
-                S3[S3 - Model Artifacts]
-            end
+            KV[Key Vault]
         end
     end
 
-    Internet[Internet] --> ALB
-    ALB --> API1
-    ALB --> API2
-    ALB --> UI1
-    ALB --> UI2
+    subgraph "External Services"
+        Supabase[(Supabase PostgreSQL)]
+        OpenAI[OpenAI API]
+    end
 
-    API1 --> RDS
-    API2 --> RDS
-    API1 --> ElastiCache
-    API2 --> ElastiCache
-    API1 --> S3
-    API2 --> S3
+    Internet[Internet] --> API1
+    Internet --> UI1
+    UI1 -->|API_URL| API1
+
+    API1 --> Supabase
+    API1 --> OpenAI
+    API1 --> RedisCache
+    API1 --> KV
+
+    API1 --> AppInsights
+    UI1 --> AppInsights
+    AppInsights --> LogAnalytics
 ```
+
+#### Azure Resources
+
+| Resource | Name Pattern | Purpose |
+|----------|-------------|---------|
+| Container Registry | `acrsmartshop<env>` | Docker image storage |
+| Container App (API) | `smartshop-api-<env>` | FastAPI backend (port 8000) |
+| Container App (UI) | `smartshop-ui-<env>` | Streamlit frontend (port 8501) |
+| Redis Cache | `smartshop-redis-<env>` | Caching + sessions |
+| Key Vault | `kv-smartshop-<env>` | Secret management |
+| Log Analytics | `log-smartshop-<env>` | Container logs |
+| Application Insights | `ai-smartshop-<env>` | APM + telemetry |
+
+Infrastructure is defined as code in `infra/main.bicep` and `infra/modules/resources.bicep`.
 
 ### Scaling Strategy
 
-1. **Horizontal Scaling**:
-   - FastAPI: Scale to N instances behind load balancer
+1. **Horizontal Scaling** (Azure Container Apps auto-scale):
+   - API: 1–5 replicas, scales at 10 concurrent HTTP requests per replica
+   - UI: 1–3 replicas, scales at 20 concurrent HTTP requests per replica
    - Agents: Stateless design allows independent scaling
 
 2. **Vertical Scaling**:
-   - PostgreSQL: Upgrade instance size as data grows
-   - Redis: Increase memory for larger cache
+   - Supabase PostgreSQL: Upgrade plan as data grows
+   - Azure Redis: Increase cache tier (Basic C0 → Standard)
 
 3. **Caching Strategy**:
    - L1: LLM response cache (in-memory TTLCache, 24h TTL)
    - L2: Redis distributed cache (session, price, LLM, review caches)
    - L3: Database query optimization (indexes, engine singleton)
 
-4. **Auto-scaling Triggers**:
-   - CPU > 70% for 5 minutes
-   - Request rate > 1000 req/min
-   - Response latency P95 > 3 seconds
+4. **Health Probes**:
+   - API: Liveness + Readiness at `GET /health` (30s / 10s intervals)
+   - UI: Liveness at `GET /_stcore/health` (30s interval)
 
 ---
 
@@ -484,7 +503,7 @@ graph TB
 
 ```
 ┌──────────────────────────────────────────┐
-│  Unit Tests (~390)                        │
+│  Unit Tests (~430)                        │
 │  TestModel mocks, AsyncMock, SQLite      │  ← Zero API cost
 │  Tests: agents, API, core, services, UI  │
 ├──────────────────────────────────────────┤
@@ -518,6 +537,6 @@ Unit tests verify **plumbing** (routing, DB queries, error paths). Eval tests ve
 
 ---
 
-**Document Version**: 1.1
+**Document Version**: 1.2
 **Last Updated**: March 2026
 **Author**: SmartShop AI Architecture Team

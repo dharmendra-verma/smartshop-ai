@@ -34,7 +34,8 @@ Manual trigger (after staging verified)
   - `lint` — ruff, black --check, mypy
   - `test` — pytest with PostgreSQL 15 + Redis 7 service containers
   - `build` — Docker image build verification (API + UI)
-- **Artifacts:** `results.xml` (JUnit), `coverage.xml`
+  - `evals` (manual only) — real OpenAI eval tests (requires `OPENAI_API_KEY` secret)
+- **Artifacts:** `results.xml` (JUnit), `coverage.xml`, `eval-results.xml` (manual runs)
 
 ### CD Staging (`cd-staging.yml`)
 - **Triggers:** Push to `main` (after merge)
@@ -68,14 +69,16 @@ The `scripts/smoke_test.sh` script validates deployments by checking:
 - `GET /health/metrics` — Performance metrics
 - `GET /health/alerts` — Alert status
 
-Retries 5 times with 10-second delays before failing.
+Retries 10 times with 15-second delays before failing. Runs as `continue-on-error` in CD Staging.
 
 ## Required GitHub Secrets
 
 | Secret | Description |
 |--------|-------------|
 | `AZURE_CREDENTIALS` | Service principal JSON for Azure CLI login |
-| `ACR_LOGIN_SERVER` | ACR server URL (e.g., `acrsmartshopstaging.azurecr.io`) |
+| `DATABASE_URL` | Supabase PostgreSQL connection string |
+| `OPENAI_API_KEY` | OpenAI API key for agents + embeddings |
+| `REDIS_URL` | Azure Cache for Redis connection string |
 
 ## GitHub Environments
 

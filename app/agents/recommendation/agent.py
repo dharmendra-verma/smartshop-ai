@@ -11,6 +11,7 @@ from app.agents.base import BaseAgent, AgentResponse
 from app.agents.dependencies import AgentDependencies
 from app.agents.recommendation.prompts import SYSTEM_PROMPT
 from app.agents.recommendation import tools
+from app.agents.price.tools import search_products_by_name
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,7 @@ def _build_agent(model_name: str) -> Agent:
     agent.tool(tools.search_products_by_filters)
     agent.tool(tools.get_product_details)
     agent.tool(tools.get_categories)
+    agent.tool(search_products_by_name)
     return agent
 
 
@@ -73,6 +75,7 @@ class RecommendationAgent(BaseAgent):
             context: Must contain 'deps': AgentDependencies instance.
                      May also contain 'max_results': int (default 5).
         """
+        logger.info("RecommendationAgent invoked | query=%r", query[:100])
         deps: AgentDependencies = context.get("deps")
         if deps is None:
             return AgentResponse(
@@ -85,6 +88,7 @@ class RecommendationAgent(BaseAgent):
 
         cached = get_cached_llm_response(self.name, query)
         if cached:
+            logger.info("RecommendationAgent LLM cache hit | query=%r", query[:80])
             return cached
 
         max_results: int = context.get("max_results", 5)
@@ -95,6 +99,7 @@ class RecommendationAgent(BaseAgent):
             result = await self._agent.run(
                 enriched_query, deps=deps, usage_limits=UsageLimits(request_limit=15)
             )
+            usage_info = self.log_usage(result)
             output: _RecommendationOutput = result.output
 
             recommendations = _hydrate_recommendations(output, deps)

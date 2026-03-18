@@ -55,8 +55,17 @@ class Orchestrator:
             agent = self._registry["general"]
             breaker = self._breakers["general"]
 
+        logger.info(
+            "Orchestrator: intent=%s → agent='%s' | query=%r",
+            intent_name, agent_key, query[:80],
+        )
+
         try:
             response = await agent.process(query, ctx)
+            logger.info(
+                "Orchestrator: agent='%s' finished | success=%s",
+                agent_key, response.success,
+            )
             if breaker:
                 (
                     breaker.record_success()

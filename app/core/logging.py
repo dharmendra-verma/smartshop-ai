@@ -16,7 +16,7 @@ def setup_logging() -> None:
 
     handlers: list[logging.Handler] = [logging.StreamHandler(sys.stdout)]
 
-    log_file = os.getenv("LOG_FILE")
+    log_file = settings.LOG_FILE
     if log_file:
         os.makedirs(os.path.dirname(log_file) or ".", exist_ok=True)
         file_handler = RotatingFileHandler(
@@ -29,11 +29,15 @@ def setup_logging() -> None:
         format=fmt,
         datefmt=datefmt,
         handlers=handlers,
+        force=True,
     )
 
     # Quieten noisy libraries
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
     logging.getLogger("uvicorn.access").setLevel(logging.INFO)
+    logging.getLogger("openai").setLevel(logging.WARNING)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
 
     logger = logging.getLogger(__name__)
     logger.info("Logging configured at level: %s", settings.LOG_LEVEL)

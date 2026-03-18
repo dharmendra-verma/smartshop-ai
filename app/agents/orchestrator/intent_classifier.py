@@ -56,11 +56,16 @@ class IntentClassifier:
             result = await self._agent.run(
                 query, deps=_ClassifierDeps(), usage_limits=UsageLimits(request_limit=5)
             )
+            usage = result.usage()
+            input_tk = usage.input_tokens or 0
+            output_tk = usage.output_tokens or 0
+            cost = (input_tk * 0.15 + output_tk * 0.60) / 1_000_000
             logger.info(
-                "Intent: '%s' → %s (%.2f)",
+                "Intent: '%s' → %s (%.2f) | tokens: %d in + %d out | cost: $%.6f",
                 query[:60],
                 result.output.intent,
                 result.output.confidence,
+                input_tk, output_tk, cost,
             )
             return result.output
         except Exception as exc:

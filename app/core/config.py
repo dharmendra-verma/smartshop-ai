@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     ENV: str = "development"
     DEBUG: bool = True
     LOG_LEVEL: str = "INFO"
+    LOG_FILE: str | None = None
 
     # API
     API_HOST: str = "0.0.0.0"

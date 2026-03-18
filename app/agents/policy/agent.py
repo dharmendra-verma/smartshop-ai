@@ -61,6 +61,7 @@ class PolicyAgent(BaseAgent):
         self._agent = _build_agent(model_name or settings.OPENAI_MODEL)
 
     async def process(self, query: str, context: dict[str, Any]) -> AgentResponse:
+        logger.info("PolicyAgent invoked | query=%r", query[:100])
         deps: AgentDependencies = context.get("deps")
         if deps is None:
             return AgentResponse(
@@ -73,6 +74,7 @@ class PolicyAgent(BaseAgent):
 
         cached = get_cached_llm_response(self.name, query)
         if cached:
+            logger.info("PolicyAgent LLM cache hit | query=%r", query[:80])
             return cached
 
         vector_store = context.get("vector_store") or get_vector_store()
@@ -83,6 +85,7 @@ class PolicyAgent(BaseAgent):
             result = await self._agent.run(
                 query, deps=policy_deps, usage_limits=UsageLimits(request_limit=15)
             )
+            usage_info = self.log_usage(result)
             ans: _PolicyAnswer = result.output
             response = AgentResponse(
                 success=True,

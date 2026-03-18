@@ -53,7 +53,7 @@ with st.sidebar:
     st.divider()
     st.subheader("⚙️ Settings")
     # Read from env var (Docker) or allow manual override
-    default_url = os.getenv("API_URL", "http://localhost:8000")
+    default_url = os.getenv("API_URL", "http://localhost:8080")
     api_url = st.text_input("API URL", default_url)
 
     # Backend status indicator

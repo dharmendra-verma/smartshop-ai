@@ -122,6 +122,63 @@ All services have health checks (10s interval, 5 retries):
 
 ---
 
+## Azure Container Apps (Cloud Deployment)
+
+SmartShop AI deploys to Azure Container Apps via GitHub Actions CI/CD. See [AZURE_SETUP.md](AZURE_SETUP.md) for full infrastructure setup and [CICD.md](CICD.md) for pipeline details.
+
+### Infrastructure Setup (One-Time)
+
+```bash
+# Deploy staging infrastructure via Bicep
+az deployment sub create \
+  --location eastus \
+  --template-file infra/main.bicep \
+  --parameters infra/parameters.staging.json
+```
+
+### Deploy Manually
+
+```bash
+# Login to ACR and push images
+az acr login --name acrsmartshopstaging
+
+docker build -f Dockerfile -t acrsmartshopstaging.azurecr.io/smartshop-api:latest .
+docker push acrsmartshopstaging.azurecr.io/smartshop-api:latest
+
+docker build -f Dockerfile.streamlit -t acrsmartshopstaging.azurecr.io/smartshop-ui:latest .
+docker push acrsmartshopstaging.azurecr.io/smartshop-ui:latest
+
+# Update container apps
+az containerapp update \
+  --name smartshop-api-staging \
+  --resource-group rg-smartshop-staging \
+  --image acrsmartshopstaging.azurecr.io/smartshop-api:latest
+
+az containerapp update \
+  --name smartshop-ui-staging \
+  --resource-group rg-smartshop-staging \
+  --image acrsmartshopstaging.azurecr.io/smartshop-ui:latest
+```
+
+### Automated Deployment
+
+- **Staging:** Automatically deploys on every push to `main` via `cd-staging.yml`
+- **Production:** Manual trigger via GitHub Actions `cd-production.yml` with image tag input
+- **Rollback:** Production auto-rolls back to previous revision if health check fails
+
+### Azure Resources
+
+| Resource | Staging | Production |
+|----------|---------|------------|
+| Resource Group | `rg-smartshop-staging` | `rg-smartshop-prod` |
+| API Container App | `smartshop-api-staging` | `smartshop-api-prod` |
+| UI Container App | `smartshop-ui-staging` | `smartshop-ui-prod` |
+| Container Registry | `acrsmartshopstaging` | `acrsmartshopprod` |
+| Redis | `smartshop-redis-staging` | `smartshop-redis-prod` |
+| Key Vault | `kv-smartshop-staging` | `kv-smartshop-prod` |
+
+---
+
 ## Database Migrations
 
 ```bash

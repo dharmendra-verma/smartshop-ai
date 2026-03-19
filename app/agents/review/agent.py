@@ -117,7 +117,7 @@ class ReviewSummarizationAgent(BaseAgent):
             result = await self._agent.run(
                 enriched, deps=deps, usage_limits=UsageLimits(request_limit=15)
             )
-            usage_info = self.log_usage(result)
+            self.log_usage(result)
             output: _ReviewSummaryOutput = result.output
 
             data = {

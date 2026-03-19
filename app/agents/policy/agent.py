@@ -85,7 +85,7 @@ class PolicyAgent(BaseAgent):
             result = await self._agent.run(
                 query, deps=policy_deps, usage_limits=UsageLimits(request_limit=15)
             )
-            usage_info = self.log_usage(result)
+            self.log_usage(result)
             ans: _PolicyAnswer = result.output
             response = AgentResponse(
                 success=True,

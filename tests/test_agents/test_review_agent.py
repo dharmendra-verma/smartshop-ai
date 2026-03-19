@@ -400,7 +400,9 @@ class TestReviewTools:
         ctx = MagicMock()
         ctx.deps = deps
 
-        result = await get_review_samples(ctx, "PROD001", max_positive=2, max_negative=2)
+        result = await get_review_samples(
+            ctx, "PROD001", max_positive=2, max_negative=2
+        )
         assert len(result["positive_reviews"]) == 2
 
 

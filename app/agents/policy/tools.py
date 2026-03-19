@@ -54,7 +54,5 @@ def _db_fallback(db, query: str) -> str:
     if not policies:
         return "No matching policies found."
 
-    results = [
-        f"{p.policy_type}: {p.description}\n{p.conditions}" for p in policies
-    ]
+    results = [f"{p.policy_type}: {p.description}\n{p.conditions}" for p in policies]
     return "\n\n".join(results)

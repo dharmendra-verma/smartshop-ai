@@ -46,9 +46,7 @@ class DataIngestionPipeline(ABC, Generic[T]):
                 self.db.commit()
             except Exception as e:
                 batch_end = min(start + self.batch_size, len(df))
-                logger.error(
-                    f"Batch failed at rows {start}-{batch_end}: {e}"
-                )
+                logger.error(f"Batch failed at rows {start}-{batch_end}: {e}")
                 self.db.rollback()
                 # Revert counts from _process_batch and mark all as failed
                 self.result.successful = success_before

@@ -93,21 +93,21 @@ async def get_review_stats(
             func.sum(case((Review.sentiment == "neutral", 1), else_=0)).label(
                 "neutral"
             ),
-            func.sum(
-                case((func.floor(Review.rating) == literal(1), 1), else_=0)
-            ).label("star_1"),
-            func.sum(
-                case((func.floor(Review.rating) == literal(2), 1), else_=0)
-            ).label("star_2"),
-            func.sum(
-                case((func.floor(Review.rating) == literal(3), 1), else_=0)
-            ).label("star_3"),
-            func.sum(
-                case((func.floor(Review.rating) == literal(4), 1), else_=0)
-            ).label("star_4"),
-            func.sum(
-                case((func.floor(Review.rating) == literal(5), 1), else_=0)
-            ).label("star_5"),
+            func.sum(case((func.floor(Review.rating) == literal(1), 1), else_=0)).label(
+                "star_1"
+            ),
+            func.sum(case((func.floor(Review.rating) == literal(2), 1), else_=0)).label(
+                "star_2"
+            ),
+            func.sum(case((func.floor(Review.rating) == literal(3), 1), else_=0)).label(
+                "star_3"
+            ),
+            func.sum(case((func.floor(Review.rating) == literal(4), 1), else_=0)).label(
+                "star_4"
+            ),
+            func.sum(case((func.floor(Review.rating) == literal(5), 1), else_=0)).label(
+                "star_5"
+            ),
         )
         .filter(Review.product_id == product_id)
         .first()
@@ -183,7 +183,11 @@ async def get_review_samples(
     limits = {"positive": max_positive, "negative": max_negative, "neutral": 5}
     buckets: dict[str, list[str]] = {"positive": [], "negative": [], "neutral": []}
     for text, sentiment in rows:
-        if text and sentiment in buckets and len(buckets[sentiment]) < limits[sentiment]:
+        if (
+            text
+            and sentiment in buckets
+            and len(buckets[sentiment]) < limits[sentiment]
+        ):
             buckets[sentiment].append(str(text)[:200])
 
     positive_texts = buckets["positive"]

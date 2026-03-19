@@ -101,7 +101,7 @@ class TestTTLCache:
     def test_fallback_to_ttlcache_when_redis_unavailable(self):
         """get_review_cache falls back to TTLCache when Redis is unreachable."""
         reset_review_cache()
-        with patch("app.core.cache.RedisCache") as MockRedis:
+        with patch("app.core.cache_factory.RedisCache") as MockRedis:
             MockRedis.return_value._client.ping.side_effect = ConnectionError("refused")
             cache = get_review_cache()
             assert isinstance(cache, TTLCache)

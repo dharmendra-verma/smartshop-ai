@@ -63,6 +63,28 @@ async def startup_event():
 
     await warm_caches()
 
+    # --- Explicit DB connectivity probe ---
+    import re as _re
+    from sqlalchemy import text as _text
+    from app.core.database import get_engine as _get_engine
+
+    try:
+        with _get_engine().connect() as conn:
+            conn.execute(_text("SELECT 1"))
+        logger.info("Database connectivity check: OK")
+    except Exception as db_exc:
+        try:
+            match = _re.search(r"@([^/]+)", settings.DATABASE_URL)
+            masked_host = match.group(1) if match else "unknown"
+        except Exception:
+            masked_host = "unknown"
+        logger.critical(
+            "DATABASE UNREACHABLE at startup — host=%s error=%s — "
+            "DB-dependent endpoints will fail until connectivity is restored",
+            masked_host,
+            str(db_exc),
+        )
+
     try:
         from app.agents.policy.agent import get_vector_store
         from app.models.policy import Policy

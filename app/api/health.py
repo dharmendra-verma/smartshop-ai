@@ -2,18 +2,32 @@
 
 from fastapi import APIRouter
 from datetime import datetime
+from sqlalchemy import text
+from sqlalchemy.exc import OperationalError, InterfaceError
+from app.core.database import get_engine
 
 router = APIRouter()
 
 
 @router.get("/health")
 async def health_check():
-    """Health check endpoint."""
+    """Health check endpoint — includes lightweight DB probe."""
+    db_status = "connected"
+    overall_status = "healthy"
+    try:
+        engine = get_engine()
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+    except (OperationalError, InterfaceError):
+        db_status = "unreachable"
+        overall_status = "degraded"
+
     return {
-        "status": "healthy",
+        "status": overall_status,
         "service": "SmartShop AI",
         "version": "1.0.0",
         "timestamp": datetime.utcnow().isoformat(),
+        "database": db_status,
     }
 
 

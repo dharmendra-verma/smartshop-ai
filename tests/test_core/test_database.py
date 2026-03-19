@@ -2,10 +2,11 @@
 
 import pytest
 from sqlalchemy import create_engine, inspect
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from app.core.database import (
     Base,
+    get_db,
     get_engine,
     get_session_factory,
     create_tables,
@@ -130,3 +131,55 @@ def test_get_session_factory_returns_singleton():
             f1 = get_session_factory()
             f2 = get_session_factory()
             assert f1 is f2
+
+
+def test_engine_has_pool_recycle():
+    """Test that get_engine() sets pool_recycle=1800."""
+    with patch("app.core.database.get_settings") as mock_settings:
+        mock_settings.return_value.DATABASE_URL = "sqlite:///test.db"
+        mock_settings.return_value.DB_ECHO = False
+        mock_settings.return_value.DB_POOL_SIZE = 5
+        mock_settings.return_value.DB_MAX_OVERFLOW = 10
+        with patch("app.core.database.create_engine") as mock_ce:
+            mock_ce.return_value = MagicMock()
+            get_engine()
+            _, kwargs = mock_ce.call_args
+            assert kwargs.get("pool_recycle") == 1800
+
+
+def test_engine_has_connect_timeout():
+    """Test that get_engine() sets connect_args with connect_timeout=10."""
+    with patch("app.core.database.get_settings") as mock_settings:
+        mock_settings.return_value.DATABASE_URL = "sqlite:///test.db"
+        mock_settings.return_value.DB_ECHO = False
+        mock_settings.return_value.DB_POOL_SIZE = 5
+        mock_settings.return_value.DB_MAX_OVERFLOW = 10
+        with patch("app.core.database.create_engine") as mock_ce:
+            mock_ce.return_value = MagicMock()
+            get_engine()
+            _, kwargs = mock_ce.call_args
+            assert kwargs.get("connect_args", {}).get("connect_timeout") == 10
+
+
+def test_get_db_rollback_on_exception():
+    """Test that get_db() calls rollback() when an exception is raised."""
+    mock_session = MagicMock()
+    with patch("app.core.database.get_session_factory") as mock_factory_fn:
+        mock_factory_fn.return_value = MagicMock(return_value=mock_session)
+        gen = get_db()
+        next(gen)
+        with pytest.raises(ValueError):
+            gen.throw(ValueError("boom"))
+    mock_session.rollback.assert_called_once()
+
+
+def test_get_db_closes_on_exception():
+    """Test that get_db() always closes the session even on exception."""
+    mock_session = MagicMock()
+    with patch("app.core.database.get_session_factory") as mock_factory_fn:
+        mock_factory_fn.return_value = MagicMock(return_value=mock_session)
+        gen = get_db()
+        next(gen)
+        with pytest.raises(ValueError):
+            gen.throw(ValueError("boom"))
+    mock_session.close.assert_called_once()

@@ -28,6 +28,8 @@ def get_engine() -> Engine:
             pool_size=settings.DB_POOL_SIZE,
             max_overflow=settings.DB_MAX_OVERFLOW,
             pool_pre_ping=True,
+            connect_args={"connect_timeout": 10},
+            pool_recycle=1800,
         )
     return _engine
 
@@ -57,6 +59,9 @@ def get_db() -> Generator[Session, None, None]:
     db = session_factory()
     try:
         yield db
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
 

@@ -143,26 +143,16 @@ def get_review_cache() -> TTLCache | RedisCache:
         return _review_cache
 
     from app.core.config import get_settings
+    from app.core.cache_factory import create_cache
 
     settings = get_settings()
-
-    try:
-        cache = RedisCache(
-            redis_url=settings.REDIS_URL,
-            default_ttl=settings.CACHE_TTL_SECONDS,
-            key_prefix="smartshop:",
-        )
-        # Verify connection
-        cache._client.ping()
-        _review_cache = cache
-        logger.info("Cache: using Redis at %s", settings.REDIS_URL)
-    except Exception:
-        _review_cache = TTLCache(
-            default_ttl=settings.CACHE_TTL_SECONDS,
-            max_size=settings.CACHE_MAX_SIZE,
-        )
-        logger.info("Cache: Redis unavailable, using in-memory TTLCache")
-
+    _review_cache = create_cache(
+        redis_url=settings.REDIS_URL,
+        key_prefix="smartshop:",
+        ttl=settings.CACHE_TTL_SECONDS,
+        max_size=settings.CACHE_MAX_SIZE,
+        name="ReviewCache",
+    )
     return _review_cache
 
 

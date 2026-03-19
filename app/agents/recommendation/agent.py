@@ -12,6 +12,7 @@ from app.agents.dependencies import AgentDependencies
 from app.agents.recommendation.prompts import SYSTEM_PROMPT
 from app.agents.recommendation import tools
 from app.agents.price.tools import search_products_by_name
+from app.agents.utils import build_recommendation_query
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -93,7 +94,9 @@ class RecommendationAgent(BaseAgent):
 
         max_results: int = context.get("max_results", 5)
         structured_hints = context.get("structured_hints", {})
-        enriched_query = _build_enriched_query(query, structured_hints, max_results)
+        enriched_query = build_recommendation_query(
+            query, structured_hints, max_results
+        )
 
         try:
             result = await self._agent.run(
@@ -120,50 +123,7 @@ class RecommendationAgent(BaseAgent):
             set_cached_llm_response(self.name, query, response)
             return response
         except Exception as exc:
-            from app.core.exceptions import AgentRateLimitError, AgentTimeoutError
-            from app.core.alerting import record_failure
-
-            exc_type = type(exc).__name__
-            if "RateLimitError" in exc_type:
-                record_failure(self.name)
-                raise AgentRateLimitError(
-                    f"OpenAI rate limit: {exc}",
-                    user_message="I'm experiencing high demand. Please try again in a moment.",
-                    context={"agent": self.name, "query": query[:100]},
-                ) from exc
-            if "Timeout" in exc_type:
-                record_failure(self.name)
-                raise AgentTimeoutError(
-                    f"OpenAI timeout: {exc}",
-                    user_message="The AI assistant is taking too long. Please try again.",
-                    context={"agent": self.name},
-                ) from exc
-            logger.error("RecommendationAgent failed: %s", exc, exc_info=True)
-            record_failure(self.name)
-            return AgentResponse(
-                success=False,
-                data={},
-                error="Service temporarily unavailable.",
-            )
-
-
-def _build_enriched_query(
-    query: str,
-    hints: dict,
-    max_results: int,
-) -> str:
-    """Append structured hints to the natural language query."""
-    parts = [query]
-    if hints.get("max_price"):
-        parts.append(f"Maximum price: ${hints['max_price']}")
-    if hints.get("min_price"):
-        parts.append(f"Minimum price: ${hints['min_price']}")
-    if hints.get("category"):
-        parts.append(f"Category: {hints['category']}")
-    if hints.get("min_rating"):
-        parts.append(f"Minimum rating: {hints['min_rating']}/5")
-    parts.append(f"Return top {max_results} recommendations.")
-    return "\n".join(parts)
+            return self._handle_agent_error(exc, query=query)
 
 
 def _hydrate_recommendations(

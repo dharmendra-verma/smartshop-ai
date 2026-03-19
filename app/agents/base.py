@@ -75,5 +75,38 @@ class BaseAgent(ABC):
             "estimated_cost_usd": round(cost, 6),
         }
 
+    def _handle_agent_error(self, exc: Exception, query: str = "") -> AgentResponse:
+        """
+        Shared error handler for all agents.
+        - RateLimitError → record_failure + raise AgentRateLimitError
+        - Timeout        → record_failure + raise AgentTimeoutError
+        - Anything else  → log + record_failure + return failure AgentResponse
+        """
+        from app.core.exceptions import AgentRateLimitError, AgentTimeoutError
+        from app.core.alerting import record_failure
+
+        exc_type = type(exc).__name__
+        if "RateLimitError" in exc_type:
+            record_failure(self.name)
+            raise AgentRateLimitError(
+                f"OpenAI rate limit: {exc}",
+                user_message="I'm experiencing high demand. Please try again in a moment.",
+                context={"agent": self.name, "query": query[:100]},
+            ) from exc
+        if "Timeout" in exc_type:
+            record_failure(self.name)
+            raise AgentTimeoutError(
+                f"OpenAI timeout: {exc}",
+                user_message="The AI assistant is taking too long. Please try again.",
+                context={"agent": self.name},
+            ) from exc
+        logger.error("%s failed: %s", self.name, exc, exc_info=True)
+        record_failure(self.name)
+        return AgentResponse(
+            success=False,
+            data={},
+            error="Service temporarily unavailable.",
+        )
+
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(name={self.name})"

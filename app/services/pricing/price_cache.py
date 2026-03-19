@@ -14,22 +14,16 @@ def get_price_cache():
         return _price_cache
 
     from app.core.config import get_settings
-    from app.core.cache import RedisCache, TTLCache
+    from app.core.cache_factory import create_cache
 
     settings = get_settings()
-    try:
-        cache = RedisCache(
-            redis_url=settings.REDIS_URL,
-            default_ttl=3600,  # 1-hour TTL for prices
-            key_prefix="price:",
-        )
-        cache._client.ping()
-        _price_cache = cache
-        logger.info("PriceCache: using Redis")
-    except Exception:
-        _price_cache = TTLCache(default_ttl=3600, max_size=500)
-        logger.info("PriceCache: Redis unavailable, using in-memory TTLCache")
-
+    _price_cache = create_cache(
+        redis_url=settings.REDIS_URL,
+        key_prefix="price:",
+        ttl=3600,
+        max_size=500,
+        name="PriceCache",
+    )
     return _price_cache
 
 

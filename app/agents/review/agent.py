@@ -11,6 +11,7 @@ from app.agents.base import BaseAgent, AgentResponse
 from app.agents.dependencies import AgentDependencies
 from app.agents.review.prompts import SYSTEM_PROMPT
 from app.agents.review import tools
+from app.agents.utils import build_review_query
 from app.core.cache import get_review_cache
 from app.core.config import get_settings
 
@@ -103,7 +104,7 @@ class ReviewSummarizationAgent(BaseAgent):
         product_id: str | None = context.get("product_id")
         max_reviews: int = context.get("max_reviews", 20)
 
-        enriched = _build_enriched_query(query, product_id, max_reviews)
+        enriched = build_review_query(query, product_id, max_reviews)
 
         # Check cache (only when product_id known upfront)
         if product_id:
@@ -151,42 +152,4 @@ class ReviewSummarizationAgent(BaseAgent):
             return response
 
         except Exception as exc:
-            from app.core.exceptions import AgentRateLimitError, AgentTimeoutError
-            from app.core.alerting import record_failure
-
-            exc_type = type(exc).__name__
-            if "RateLimitError" in exc_type:
-                record_failure(self.name)
-                raise AgentRateLimitError(
-                    f"OpenAI rate limit: {exc}",
-                    user_message="I'm experiencing high demand. Please try again in a moment.",
-                    context={"agent": self.name, "query": query[:100]},
-                ) from exc
-            if "Timeout" in exc_type:
-                record_failure(self.name)
-                raise AgentTimeoutError(
-                    f"OpenAI timeout: {exc}",
-                    user_message="The AI assistant is taking too long. Please try again.",
-                    context={"agent": self.name},
-                ) from exc
-            logger.error("ReviewSummarizationAgent failed: %s", exc, exc_info=True)
-            record_failure(self.name)
-            return AgentResponse(
-                success=False,
-                data={},
-                error="Service temporarily unavailable.",
-            )
-
-
-def _build_enriched_query(
-    query: str,
-    product_id: str | None,
-    max_reviews: int,
-) -> str:
-    parts = [query]
-    if product_id:
-        parts.append(f"Product ID (use directly, skip find_product): {product_id}")
-    parts.append(
-        f"Fetch up to {max_reviews // 2} positive and {max_reviews // 2} negative reviews."
-    )
-    return "\n".join(parts)
+            return self._handle_agent_error(exc, query=query)

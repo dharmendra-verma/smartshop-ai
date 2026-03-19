@@ -1,11 +1,9 @@
 """Product API endpoints — v1."""
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func as sa_func
+from sqlalchemy import func as sa_func, or_, distinct
 from sqlalchemy.orm import Session
 from typing import Optional
-
-from sqlalchemy import distinct
 
 from app.core.database import get_db
 from app.models.product import Product
@@ -13,6 +11,20 @@ from app.models.review import Review
 from app.schemas.product import ProductResponse, ProductListResponse
 
 router = APIRouter(prefix="/api/v1/products", tags=["products"])
+
+
+def _apply_product_filters(query, category: str | None, brand: str | None):
+    """Apply category and brand filters to any SQLAlchemy product query."""
+    if category:
+        query = query.filter(Product.category.ilike(f"%{category}%"))
+    if brand:
+        query = query.filter(
+            or_(
+                Product.brand.ilike(f"%{brand}%"),
+                Product.name.ilike(f"%{brand}%"),
+            )
+        )
+    return query
 
 
 @router.get("/categories", response_model=list[str])
@@ -33,35 +45,17 @@ def list_products(
     db: Session = Depends(get_db),
 ):
     """List products with optional filtering and pagination."""
-    from sqlalchemy import or_
-
     review_count_col = sa_func.count(Review.review_id).label("review_count")
     query = (
         db.query(Product, review_count_col)
         .outerjoin(Review, Product.id == Review.product_id)
         .group_by(Product.id)
     )
-    if category:
-        query = query.filter(Product.category.ilike(f"%{category}%"))
-    if brand:
-        query = query.filter(
-            or_(
-                Product.brand.ilike(f"%{brand}%"),
-                Product.name.ilike(f"%{brand}%"),
-            )
-        )
+    query = _apply_product_filters(query, category, brand)
 
     # Count total distinct products (not rows)
     count_query = db.query(Product)
-    if category:
-        count_query = count_query.filter(Product.category.ilike(f"%{category}%"))
-    if brand:
-        count_query = count_query.filter(
-            or_(
-                Product.brand.ilike(f"%{brand}%"),
-                Product.name.ilike(f"%{brand}%"),
-            )
-        )
+    count_query = _apply_product_filters(count_query, category, brand)
     total = count_query.count()
 
     pages = (total + page_size - 1) // page_size

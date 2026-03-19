@@ -17,19 +17,16 @@ def get_llm_cache():
     if _llm_cache is not None:
         return _llm_cache
     from app.core.config import get_settings
-    from app.core.cache import RedisCache, TTLCache
+    from app.core.cache_factory import create_cache
 
     settings = get_settings()
-    try:
-        cache = RedisCache(
-            settings.REDIS_URL, default_ttl=_LLM_CACHE_TTL, key_prefix="llm:"
-        )
-        cache._client.ping()
-        _llm_cache = cache
-        logger.info("LLMCache: using Redis")
-    except Exception:
-        _llm_cache = TTLCache(default_ttl=_LLM_CACHE_TTL, max_size=500)
-        logger.info("LLMCache: using in-memory TTLCache")
+    _llm_cache = create_cache(
+        redis_url=settings.REDIS_URL,
+        key_prefix="llm:",
+        ttl=_LLM_CACHE_TTL,
+        max_size=500,
+        name="LLMCache",
+    )
     return _llm_cache
 
 

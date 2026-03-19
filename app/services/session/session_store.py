@@ -17,22 +17,16 @@ def get_session_store():
         return _session_store
 
     from app.core.config import get_settings
-    from app.core.cache import RedisCache, TTLCache
+    from app.core.cache_factory import create_cache
 
     settings = get_settings()
-    try:
-        store = RedisCache(
-            redis_url=settings.REDIS_URL,
-            default_ttl=SESSION_TTL,
-            key_prefix="session:",
-        )
-        store._client.ping()
-        _session_store = store
-        logger.info("SessionStore: using Redis")
-    except Exception:
-        _session_store = TTLCache(default_ttl=SESSION_TTL, max_size=SESSION_MAX_MEMORY)
-        logger.info("SessionStore: Redis unavailable, using TTLCache")
-
+    _session_store = create_cache(
+        redis_url=settings.REDIS_URL,
+        key_prefix="session:",
+        ttl=SESSION_TTL,
+        max_size=SESSION_MAX_MEMORY,
+        name="SessionStore",
+    )
     return _session_store
 
 

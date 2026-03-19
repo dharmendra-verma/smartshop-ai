@@ -31,44 +31,52 @@ async def get_recommendations(
     The agent reasons over the product catalog and returns ranked recommendations
     with relevance scores and explanations.
     """
-    deps = AgentDependencies.from_db(db)
-    context = {
-        "deps": deps,
-        "max_results": request.max_results,
-        "structured_hints": {
-            "max_price": request.max_price,
-            "min_price": request.min_price,
-            "category": request.category,
-            "min_rating": request.min_rating,
-        },
-    }
+    try:
+        deps = AgentDependencies.from_db(db)
+        context = {
+            "deps": deps,
+            "max_results": request.max_results,
+            "structured_hints": {
+                "max_price": request.max_price,
+                "min_price": request.min_price,
+                "category": request.category,
+                "min_rating": request.min_rating,
+            },
+        }
 
-    response = await _agent.process(request.query, context)
+        response = await _agent.process(request.query, context)
 
-    if not response.success:
-        raise HTTPException(status_code=500, detail=response.error)
+        if not response.success:
+            raise HTTPException(status_code=500, detail=response.error)
 
-    data = response.data
-    recommendations = [
-        ProductRecommendation(
-            id=r["id"],
-            name=r["name"],
-            price=Decimal(str(r["price"])),
-            brand=r.get("brand"),
-            category=r["category"],
-            rating=r.get("rating"),
-            stock=r.get("stock"),
-            image_url=r.get("image_url"),
-            relevance_score=r["relevance_score"],
-            reason=r["reason"],
+        data = response.data
+        recommendations = [
+            ProductRecommendation(
+                id=r["id"],
+                name=r["name"],
+                price=Decimal(str(r["price"])),
+                brand=r.get("brand"),
+                category=r["category"],
+                rating=r.get("rating"),
+                stock=r.get("stock"),
+                image_url=r.get("image_url"),
+                relevance_score=r["relevance_score"],
+                reason=r["reason"],
+            )
+            for r in data["recommendations"]
+        ]
+
+        return RecommendationResponse(
+            query=data["query"],
+            recommendations=recommendations,
+            total_found=data["total_found"],
+            reasoning_summary=data["reasoning_summary"],
+            agent=data["agent"],
         )
-        for r in data["recommendations"]
-    ]
-
-    return RecommendationResponse(
-        query=data["query"],
-        recommendations=recommendations,
-        total_found=data["total_found"],
-        reasoning_summary=data["reasoning_summary"],
-        agent=data["agent"],
-    )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Recommendation endpoint failed: %s", exc)
+        raise HTTPException(
+            status_code=503, detail="Recommendation service temporarily unavailable"
+        )

@@ -37,6 +37,10 @@ class _IntentResult(BaseModel):
     max_price: Optional[float] = None
     min_price: Optional[float] = None
     reasoning: str = Field(description="One-sentence explanation")
+    classification_failed: bool = Field(
+        default=False,
+        description="True when classification failed and result is a fallback",
+    )
 
 
 class IntentClassifier:
@@ -76,4 +80,5 @@ class IntentClassifier:
                 intent=IntentType.GENERAL,
                 confidence=0.0,
                 reasoning=f"Classification failed: {exc}",
+                classification_failed=True,
             )

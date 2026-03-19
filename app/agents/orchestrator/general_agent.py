@@ -44,12 +44,10 @@ class GeneralResponseAgent(BaseAgent):
         except Exception as exc:
             from app.core.alerting import record_failure
 
-            exc_type = type(exc).__name__
-            if "RateLimitError" in exc_type or "Timeout" in exc_type:
-                record_failure(self.name)
+            record_failure(self.name)
             logger.error("GeneralResponseAgent failed: %s", exc)
             return AgentResponse(
-                success=True,
+                success=False,
                 data={
                     "answer": (
                         "I'm here to help with product recommendations, reviews, "
@@ -57,4 +55,5 @@ class GeneralResponseAgent(BaseAgent):
                     ),
                     "agent": self.name,
                 },
+                error=f"GeneralResponseAgent failed: {type(exc).__name__}",
             )

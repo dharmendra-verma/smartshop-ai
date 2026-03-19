@@ -64,8 +64,17 @@ class SessionManager:
         try:
             data = json.loads(raw) if isinstance(raw, str) else raw
             return [ChatMessage.from_dict(m) for m in data]
-        except Exception:
-            logger.warning("Failed to parse session %s; returning empty", session_id)
+        except Exception as exc:
+            from app.core.alerting import record_failure
+
+            raw_len = len(raw) if isinstance(raw, (str, bytes)) else 0
+            logger.warning(
+                "Failed to parse session %s (raw_length=%d): %s",
+                session_id,
+                raw_len,
+                exc,
+            )
+            record_failure("session_parse")
             return []
 
     def append_turn(self, session_id: str, user_msg: str, assistant_msg: str) -> None:

@@ -32,40 +32,48 @@ async def compare_prices(
     looks up matching products, fetches competitor prices (with 1-hour cache),
     and returns a structured side-by-side comparison with best-deal identification.
     """
-    deps = AgentDependencies.from_db(db)
-    context = {
-        "deps": deps,
-        "max_results": request.max_results,
-    }
+    try:
+        deps = AgentDependencies.from_db(db)
+        context = {
+            "deps": deps,
+            "max_results": request.max_results,
+        }
 
-    response = await _agent.process(request.query, context)
+        response = await _agent.process(request.query, context)
 
-    if not response.success:
-        raise HTTPException(status_code=500, detail=response.error)
+        if not response.success:
+            raise HTTPException(status_code=500, detail=response.error)
 
-    data = response.data
-    products = [
-        ProductComparison(
-            product_id=p["product_id"],
-            name=p["name"],
-            our_price=p["our_price"],
-            competitor_prices=[PricePoint(**pp) for pp in p["competitor_prices"]],
-            best_price=p["best_price"],
-            best_source=p["best_source"],
-            savings_pct=p["savings_pct"],
-            rating=p.get("rating"),
-            brand=p.get("brand"),
-            category=p.get("category"),
-            is_cached=p.get("is_cached", False),
+        data = response.data
+        products = [
+            ProductComparison(
+                product_id=p["product_id"],
+                name=p["name"],
+                our_price=p["our_price"],
+                competitor_prices=[PricePoint(**pp) for pp in p["competitor_prices"]],
+                best_price=p["best_price"],
+                best_source=p["best_source"],
+                savings_pct=p["savings_pct"],
+                rating=p.get("rating"),
+                brand=p.get("brand"),
+                category=p.get("category"),
+                is_cached=p.get("is_cached", False),
+            )
+            for p in data["products"]
+        ]
+
+        return PriceCompareResponse(
+            query=data["query"],
+            products=products,
+            best_deal=data["best_deal"],
+            recommendation=data["recommendation"],
+            total_compared=data["total_compared"],
+            agent=data["agent"],
         )
-        for p in data["products"]
-    ]
-
-    return PriceCompareResponse(
-        query=data["query"],
-        products=products,
-        best_deal=data["best_deal"],
-        recommendation=data["recommendation"],
-        total_compared=data["total_compared"],
-        agent=data["agent"],
-    )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Price comparison endpoint failed: %s", exc)
+        raise HTTPException(
+            status_code=503, detail="Price comparison service temporarily unavailable"
+        )

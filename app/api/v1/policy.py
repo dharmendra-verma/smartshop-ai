@@ -18,24 +18,32 @@ async def ask_policy(
     request: PolicyAskRequest, db: Session = Depends(get_db)
 ) -> PolicyAskResponse:
     """Answer a policy question using RAG (FAISS semantic search + GPT-4o-mini)."""
-    deps = AgentDependencies.from_db(db)
-    vs = get_vector_store()
+    try:
+        deps = AgentDependencies.from_db(db)
+        vs = get_vector_store()
 
-    if vs._index is None:
-        from app.models.policy import Policy
+        if vs._index is None:
+            from app.models.policy import Policy
 
-        vs.load_or_build(db.query(Policy).all())
+            vs.load_or_build(db.query(Policy).all())
 
-    response = await _agent.process(
-        request.query, context={"deps": deps, "vector_store": vs}
-    )
-    if not response.success:
-        raise HTTPException(status_code=500, detail=response.error)
+        response = await _agent.process(
+            request.query, context={"deps": deps, "vector_store": vs}
+        )
+        if not response.success:
+            raise HTTPException(status_code=500, detail=response.error)
 
-    return PolicyAskResponse(
-        query=response.data["query"],
-        answer=response.data["answer"],
-        sources=response.data["sources"],
-        confidence=response.data["confidence"],
-        agent=response.data["agent"],
-    )
+        return PolicyAskResponse(
+            query=response.data["query"],
+            answer=response.data["answer"],
+            sources=response.data["sources"],
+            confidence=response.data["confidence"],
+            agent=response.data["agent"],
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Policy endpoint failed: %s", exc)
+        raise HTTPException(
+            status_code=503, detail="Policy service temporarily unavailable"
+        )

@@ -85,6 +85,7 @@ Plan and start working in below sequence and with given instruciton
 | SCRUM-66 | 474 |
 | SCRUM-67 | 486 |
 | SCRUM-68 | 500 |
+| SCRUM-69 | 511 |
 
 ## Architecture
 ```
@@ -148,7 +149,7 @@ scripts/           # smoke_test.sh, data ingestion scripts
 | GeneralResponseAgent | (fallback via orchestrator) | general |
 
 ## Completed Stories
-SCRUM-8 (Load Product Catalog) → SCRUM-9 (FastAPI scaffold) → SCRUM-10 (RecommendationAgent) → SCRUM-11 (ReviewAgent) → SCRUM-12 (Streamlit UI) → SCRUM-13 (E2E integration) → SCRUM-14 (PriceAgent) → SCRUM-15 (PolicyAgent/RAG) → SCRUM-16 (Orchestrator/Intent Router) → SCRUM-17 (Session Memory) → SCRUM-18 (UI Polish) → SCRUM-40 (Product Images) → SCRUM-41 (Floating Chat Widget) → SCRUM-42 (Compact Product Card) → SCRUM-43 (Infinite Load) → SCRUM-19 (Error Handling & Resilience) → SCRUM-61 (Inline Reviews Panel) → SCRUM-20 (Performance Optimization) → SCRUM-62 (Inline Product Comparison) → SCRUM-21 (Comprehensive Documentation) → SCRUM-64 (CI/CD Pipeline & Azure Container Apps) → SCRUM-22 (Demo Presentation Materials) → SCRUM-63 (File Logging with Rotation) → SCRUM-65 (DB Logging & Health Checks) → SCRUM-66 (DRY Refactor) → SCRUM-67 (SQL Query Optimization) → SCRUM-68 (AI Routing Accuracy)
+SCRUM-8 (Load Product Catalog) → SCRUM-9 (FastAPI scaffold) → SCRUM-10 (RecommendationAgent) → SCRUM-11 (ReviewAgent) → SCRUM-12 (Streamlit UI) → SCRUM-13 (E2E integration) → SCRUM-14 (PriceAgent) → SCRUM-15 (PolicyAgent/RAG) → SCRUM-16 (Orchestrator/Intent Router) → SCRUM-17 (Session Memory) → SCRUM-18 (UI Polish) → SCRUM-40 (Product Images) → SCRUM-41 (Floating Chat Widget) → SCRUM-42 (Compact Product Card) → SCRUM-43 (Infinite Load) → SCRUM-19 (Error Handling & Resilience) → SCRUM-61 (Inline Reviews Panel) → SCRUM-20 (Performance Optimization) → SCRUM-62 (Inline Product Comparison) → SCRUM-21 (Comprehensive Documentation) → SCRUM-64 (CI/CD Pipeline & Azure Container Apps) → SCRUM-22 (Demo Presentation Materials) → SCRUM-63 (File Logging with Rotation) → SCRUM-65 (DB Logging & Health Checks) → SCRUM-66 (DRY Refactor) → SCRUM-67 (SQL Query Optimization) → SCRUM-68 (AI Routing Accuracy) → SCRUM-69 (Error Handling Hardening)
 
 ## In-Progress Plans
 _(none)_

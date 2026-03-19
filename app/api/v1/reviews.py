@@ -35,33 +35,42 @@ async def summarize_reviews(
     The agent fetches review stats and sample texts from the database,
     then extracts sentiment themes and generates a narrative summary.
     """
-    deps = AgentDependencies.from_db(db)
-    context = {
-        "deps": deps,
-        "product_id": request.product_id,
-        "max_reviews": request.max_reviews,
-    }
+    try:
+        deps = AgentDependencies.from_db(db)
+        context = {
+            "deps": deps,
+            "product_id": request.product_id,
+            "max_reviews": request.max_reviews,
+        }
 
-    response = await _agent.process(request.query, context)
+        response = await _agent.process(request.query, context)
 
-    if not response.success:
-        raise HTTPException(status_code=500, detail=response.error)
+        if not response.success:
+            raise HTTPException(status_code=500, detail=response.error)
 
-    data = response.data
+        data = response.data
 
-    return ReviewSummarizationResponse(
-        product_id=data["product_id"],
-        product_name=data["product_name"],
-        total_reviews=data["total_reviews"],
-        sentiment_score=data["sentiment_score"],
-        average_rating=data["average_rating"],
-        rating_distribution=RatingDistribution(**data["rating_distribution"]),
-        positive_themes=[SentimentTheme(**t) for t in data["positive_themes"]],
-        negative_themes=[SentimentTheme(**t) for t in data["negative_themes"]],
-        overall_summary=data["overall_summary"],
-        cached=data.get("cached", False),
-        agent=data.get("agent", "review-summarization-agent"),
-    )
+        return ReviewSummarizationResponse(
+            product_id=data["product_id"],
+            product_name=data["product_name"],
+            total_reviews=data["total_reviews"],
+            sentiment_score=data["sentiment_score"],
+            average_rating=data["average_rating"],
+            rating_distribution=RatingDistribution(**data["rating_distribution"]),
+            positive_themes=[SentimentTheme(**t) for t in data["positive_themes"]],
+            negative_themes=[SentimentTheme(**t) for t in data["negative_themes"]],
+            overall_summary=data["overall_summary"],
+            cached=data.get("cached", False),
+            agent=data.get("agent", "review-summarization-agent"),
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Review summarization endpoint failed: %s", exc)
+        raise HTTPException(
+            status_code=503,
+            detail="Review summarization service temporarily unavailable",
+        )
 
 
 @router.get("/{product_id}", response_model=ReviewListResponse)

@@ -65,7 +65,9 @@ class IntentClassifier:
                 query[:60],
                 result.output.intent,
                 result.output.confidence,
-                input_tk, output_tk, cost,
+                input_tk,
+                output_tk,
+                cost,
             )
             return result.output
         except Exception as exc:

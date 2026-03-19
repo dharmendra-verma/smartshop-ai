@@ -59,7 +59,12 @@ class BaseAgent(ABC):
         logger.info(
             "%s usage | tokens: %d in + %d out = %d total | "
             "requests: %d | est. cost: $%.6f",
-            self.name, input_tk, output_tk, total_tk, requests, cost,
+            self.name,
+            input_tk,
+            output_tk,
+            total_tk,
+            requests,
+            cost,
         )
 
         return {

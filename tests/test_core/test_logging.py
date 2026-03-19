@@ -58,9 +58,7 @@ class TestSetupLoggingConsoleOnly:
             setup_logging()
 
         root = logging.getLogger()
-        file_handlers = [
-            h for h in root.handlers if isinstance(h, RotatingFileHandler)
-        ]
+        file_handlers = [h for h in root.handlers if isinstance(h, RotatingFileHandler)]
         assert len(file_handlers) == 0
 
     def test_sets_correct_log_level_info(self):
@@ -107,9 +105,7 @@ class TestSetupLoggingWithFile:
             setup_logging()
 
         root = logging.getLogger()
-        file_handlers = [
-            h for h in root.handlers if isinstance(h, RotatingFileHandler)
-        ]
+        file_handlers = [h for h in root.handlers if isinstance(h, RotatingFileHandler)]
         assert len(file_handlers) == 1
 
     def test_file_handler_rotation_config(self, tmp_path):

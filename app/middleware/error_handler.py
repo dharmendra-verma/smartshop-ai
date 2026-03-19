@@ -23,6 +23,7 @@ def _get_masked_db_host() -> str:
     """Extract and mask the DB host from DATABASE_URL for safe logging."""
     try:
         from app.core.config import get_settings
+
         url = get_settings().DATABASE_URL
         match = re.search(r"@([^/]+)", url)
         return match.group(1) if match else "unknown"
@@ -74,7 +75,10 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             db_host = _get_masked_db_host()
             logger.error(
                 "DB connectivity error [%s]: type=%s host=%s error=%.200s",
-                request_id, type(exc).__name__, db_host, str(exc),
+                request_id,
+                type(exc).__name__,
+                db_host,
+                str(exc),
                 exc_info=True,
             )
             record_failure("database")

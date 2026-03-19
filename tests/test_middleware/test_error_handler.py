@@ -93,6 +93,7 @@ class TestUnhandledExceptionHandler:
 class TestSQLAlchemyErrorHandler:
     def test_operational_error_returns_503(self):
         from sqlalchemy.exc import OperationalError
+
         exc = OperationalError("connection refused", None, Exception("orig"))
         app = _build_app(("/sa-op", exc))
         resp = TestClient(app, raise_server_exceptions=False).get("/sa-op")
@@ -103,6 +104,7 @@ class TestSQLAlchemyErrorHandler:
 
     def test_interface_error_returns_503(self):
         from sqlalchemy.exc import InterfaceError
+
         exc = InterfaceError("interface error", None, Exception("orig"))
         app = _build_app(("/sa-iface", exc))
         resp = TestClient(app, raise_server_exceptions=False).get("/sa-iface")
@@ -114,6 +116,7 @@ class TestSQLAlchemyErrorHandler:
     def test_sqlalchemy_error_records_database_component(self):
         from sqlalchemy.exc import OperationalError
         from app.core.alerting import get_alert_status
+
         exc = OperationalError("connection refused", None, Exception("orig"))
         app = _build_app(("/sa-alert", exc))
         TestClient(app, raise_server_exceptions=False).get("/sa-alert")
@@ -122,6 +125,7 @@ class TestSQLAlchemyErrorHandler:
 
     def test_sqlalchemy_error_includes_request_id(self):
         from sqlalchemy.exc import OperationalError
+
         exc = OperationalError("connection refused", None, Exception("orig"))
         app = _build_app(("/sa-rid", exc))
         resp = TestClient(app, raise_server_exceptions=False).get("/sa-rid")

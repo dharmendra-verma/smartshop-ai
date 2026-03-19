@@ -1,9 +1,6 @@
 """Tests for SCRUM-67 SQL optimizations: review tools, policy fallback, ingestion batch handling."""
 
-import pytest
-from unittest.mock import MagicMock, patch
-from app.agents.dependencies import AgentDependencies
-from app.core.config import get_settings
+from unittest.mock import MagicMock
 
 
 # ---- Policy DB Fallback Tests ----

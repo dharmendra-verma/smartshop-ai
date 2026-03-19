@@ -51,7 +51,6 @@ class DataIngestionPipeline(ABC, Generic[T]):
                 )
                 self.db.rollback()
                 # Revert counts from _process_batch and mark all as failed
-                batch_successes = self.result.successful - success_before
                 self.result.successful = success_before
                 self.result.failed = failed_before + len(batch)
                 self.result.errors.append(

@@ -51,6 +51,8 @@ class Settings(BaseSettings):
     AGENT_TIMEOUT_SECONDS: int = 30
     AGENT_MAX_RETRIES: int = 3
     AGENT_RETRY_DELAY_SECONDS: int = 1
+    INTENT_CONFIDENCE_THRESHOLD: float = 0.6
+    FAISS_MIN_SIMILARITY_SCORE: float = 0.4
 
     # Rate Limiting
     RATE_LIMIT_REQUESTS_PER_MINUTE: int = 60

@@ -66,14 +66,26 @@ class PolicyVectorStore:
         self.build(policies)
 
     # ── Search ────────────────────────────────────────────────────────
-    def search(self, query: str, k: int = TOP_K) -> list[PolicyChunk]:
+    def search(
+        self, query: str, k: int = TOP_K, min_score: float | None = None
+    ) -> list[PolicyChunk]:
         if self._index is None or self._index.ntotal == 0:
             return []
+        if min_score is None:
+            min_score = get_settings().FAISS_MIN_SIMILARITY_SCORE
         q = self._embed_batch([query])
         scores, idxs = self._index.search(q, min(k, self._index.ntotal))
         results = []
         for score, idx in zip(scores[0], idxs[0]):
             if idx < 0:
+                continue
+            if float(score) < min_score:
+                logger.debug(
+                    "PolicyVectorStore: dropping result idx=%d score=%.3f < %.3f",
+                    idx,
+                    score,
+                    min_score,
+                )
                 continue
             m = self._metadata[idx]
             results.append(

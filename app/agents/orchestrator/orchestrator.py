@@ -11,6 +11,7 @@ from typing import Any
 from app.agents.base import BaseAgent, AgentResponse
 from app.agents.orchestrator.intent_classifier import IntentClassifier, _IntentResult
 from app.agents.orchestrator.circuit_breaker import CircuitBreaker
+from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,18 @@ class Orchestrator:
         """Classify intent, route to agent, handle failures with multi-level fallback."""
         intent_result = await self._classifier.classify(query)
         intent_name = intent_result.intent.value
+
+        # Confidence gating: low-confidence classifications fall back to general
+        settings = get_settings()
+        threshold = settings.INTENT_CONFIDENCE_THRESHOLD
+        if intent_result.confidence < threshold and intent_name != "general":
+            logger.info(
+                "Orchestrator: confidence %.2f < %.2f for '%s' → routing to general",
+                intent_result.confidence,
+                threshold,
+                intent_name,
+            )
+            intent_name = "general"
 
         # Enrich context with extracted entities
         ctx = {**context}
@@ -51,13 +64,16 @@ class Orchestrator:
 
         if agent is None or (breaker and not breaker.is_available()):
             logger.warning("Orchestrator: '%s' unavailable → general", agent_key)
+            ctx["fallback_reason"] = f"Agent '{agent_key}' unavailable"
+            ctx["original_intent"] = intent_name
             agent_key = "general"
             agent = self._registry["general"]
             breaker = self._breakers["general"]
 
         logger.info(
-            "Orchestrator: intent=%s → agent='%s' | query=%r",
-            intent_name,
+            "Orchestrator: intent=%s (conf=%.2f) → agent='%s' | query=%r",
+            intent_result.intent.value,
+            intent_result.confidence,
             agent_key,
             query[:80],
         )
@@ -96,7 +112,12 @@ class Orchestrator:
                 return AgentResponse(success=True, data=cached), intent_result
             fallback = self._registry.get("general")
             if fallback:
-                return await fallback.process(query, context), intent_result
+                fallback_ctx = {
+                    **context,
+                    "fallback_reason": f"Agent '{agent_key}' failed: {exc}",
+                    "original_intent": intent_name,
+                }
+                return await fallback.process(query, fallback_ctx), intent_result
             return AgentResponse(success=False, data={}, error=str(exc)), intent_result
 
 

@@ -93,10 +93,17 @@ class RecommendationAgent(BaseAgent):
             return cached
 
         max_results: int = context.get("max_results", 5)
+        compare_mode: bool = context.get("compare_mode", False)
         structured_hints = context.get("structured_hints", {})
         enriched_query = build_recommendation_query(
             query, structured_hints, max_results
         )
+        if compare_mode:
+            enriched_query += (
+                "\n\nCOMPARISON MODE: Focus on side-by-side comparison of the "
+                "named products. Highlight differences in price, features, ratings, "
+                "and value. Score each product relative to the others."
+            )
 
         try:
             result = await self._agent.run(
@@ -105,19 +112,35 @@ class RecommendationAgent(BaseAgent):
             self.log_usage(result)
             output: _RecommendationOutput = result.output
 
-            recommendations = _hydrate_recommendations(output, deps)
+            recommendations, hallucinated_ids = _hydrate_recommendations(output, deps)
+            requested_count = len(output.recommendations)
+            returned_count = len(recommendations)
+
+            if hallucinated_ids:
+                from app.core.alerting import record_failure
+
+                for pid in hallucinated_ids:
+                    record_failure("hallucination")
+                logger.warning(
+                    "RecommendationAgent: %d hallucinated product IDs dropped: %s",
+                    len(hallucinated_ids),
+                    hallucinated_ids,
+                )
 
             response = AgentResponse(
                 success=True,
                 data={
                     "query": query,
                     "recommendations": recommendations,
-                    "total_found": len(recommendations),
+                    "total_found": returned_count,
+                    "requested_count": requested_count,
+                    "returned_count": returned_count,
                     "reasoning_summary": output.reasoning_summary,
                     "agent": self.name,
                 },
                 metadata={
                     "model": str(self._agent.model),
+                    "hallucinated_ids": hallucinated_ids,
                 },
             )
             set_cached_llm_response(self.name, query, response)
@@ -129,14 +152,18 @@ class RecommendationAgent(BaseAgent):
 def _hydrate_recommendations(
     output: _RecommendationOutput,
     deps: AgentDependencies,
-) -> list[dict]:
+) -> tuple[list[dict], list[str]]:
     """
     Fetch full product data from DB for each recommendation.
     Drops any product_id the LLM hallucinated (not in DB).
+
+    Returns:
+        Tuple of (hydrated results, list of hallucinated product IDs).
     """
     from app.models.product import Product
 
     results = []
+    hallucinated_ids = []
     for rec in output.recommendations:
         product = deps.db.query(Product).filter(Product.id == rec.product_id).first()
         if product:
@@ -144,5 +171,7 @@ def _hydrate_recommendations(
             data["relevance_score"] = rec.relevance_score
             data["reason"] = rec.reason
             results.append(data)
+        else:
+            hallucinated_ids.append(rec.product_id)
     results.sort(key=lambda x: x["relevance_score"], reverse=True)
-    return results
+    return results, hallucinated_ids

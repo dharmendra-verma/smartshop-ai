@@ -84,6 +84,7 @@ Plan and start working in below sequence and with given instruciton
 | SCRUM-65 | 460 |
 | SCRUM-66 | 474 |
 | SCRUM-67 | 486 |
+| SCRUM-68 | 500 |
 
 ## Architecture
 ```
@@ -132,6 +133,9 @@ scripts/           # smoke_test.sh, data ingestion scripts
 | Agent error handling | `BaseAgent._handle_agent_error(exc, query)` — shared handler: RateLimitError→429, Timeout→504, generic→failure AgentResponse |
 | Cache factory | `app/core/cache_factory.create_cache(redis_url, key_prefix, ttl, max_size, name)` — Redis→TTLCache, used by all 4 cache singletons |
 | Agent query utils | `app/agents/utils.build_recommendation_query()` + `build_review_query()` — shared query builders |
+| Confidence gating | Orchestrator routes to general when `intent.confidence < INTENT_CONFIDENCE_THRESHOLD` (default 0.6) |
+| Hallucination tracking | `_hydrate_recommendations()` returns hallucinated IDs → `record_failure("hallucination")`, metadata includes `requested_count`/`returned_count` |
+| FAISS threshold | `PolicyVectorStore.search(min_score=)` filters low-similarity results (default `FAISS_MIN_SIMILARITY_SCORE=0.4`) |
 
 ## Agents & Endpoints
 | Agent | Endpoint | Intent |
@@ -144,7 +148,7 @@ scripts/           # smoke_test.sh, data ingestion scripts
 | GeneralResponseAgent | (fallback via orchestrator) | general |
 
 ## Completed Stories
-SCRUM-8 (Load Product Catalog) → SCRUM-9 (FastAPI scaffold) → SCRUM-10 (RecommendationAgent) → SCRUM-11 (ReviewAgent) → SCRUM-12 (Streamlit UI) → SCRUM-13 (E2E integration) → SCRUM-14 (PriceAgent) → SCRUM-15 (PolicyAgent/RAG) → SCRUM-16 (Orchestrator/Intent Router) → SCRUM-17 (Session Memory) → SCRUM-18 (UI Polish) → SCRUM-40 (Product Images) → SCRUM-41 (Floating Chat Widget) → SCRUM-42 (Compact Product Card) → SCRUM-43 (Infinite Load) → SCRUM-19 (Error Handling & Resilience) → SCRUM-61 (Inline Reviews Panel) → SCRUM-20 (Performance Optimization) → SCRUM-62 (Inline Product Comparison) → SCRUM-21 (Comprehensive Documentation) → SCRUM-64 (CI/CD Pipeline & Azure Container Apps) → SCRUM-22 (Demo Presentation Materials) → SCRUM-63 (File Logging with Rotation) → SCRUM-65 (DB Logging & Health Checks) → SCRUM-66 (DRY Refactor) → SCRUM-67 (SQL Query Optimization)
+SCRUM-8 (Load Product Catalog) → SCRUM-9 (FastAPI scaffold) → SCRUM-10 (RecommendationAgent) → SCRUM-11 (ReviewAgent) → SCRUM-12 (Streamlit UI) → SCRUM-13 (E2E integration) → SCRUM-14 (PriceAgent) → SCRUM-15 (PolicyAgent/RAG) → SCRUM-16 (Orchestrator/Intent Router) → SCRUM-17 (Session Memory) → SCRUM-18 (UI Polish) → SCRUM-40 (Product Images) → SCRUM-41 (Floating Chat Widget) → SCRUM-42 (Compact Product Card) → SCRUM-43 (Infinite Load) → SCRUM-19 (Error Handling & Resilience) → SCRUM-61 (Inline Reviews Panel) → SCRUM-20 (Performance Optimization) → SCRUM-62 (Inline Product Comparison) → SCRUM-21 (Comprehensive Documentation) → SCRUM-64 (CI/CD Pipeline & Azure Container Apps) → SCRUM-22 (Demo Presentation Materials) → SCRUM-63 (File Logging with Rotation) → SCRUM-65 (DB Logging & Health Checks) → SCRUM-66 (DRY Refactor) → SCRUM-67 (SQL Query Optimization) → SCRUM-68 (AI Routing Accuracy)
 
 ## In-Progress Plans
 _(none)_

@@ -105,12 +105,23 @@ class PriceComparisonAgent(BaseAgent):
             self.log_usage(result)
             output: _ComparisonOutput = result.output
 
+            # Validate best_deal against actual product names
+            best_deal = output.best_deal
+            product_names = [p.name for p in output.products]
+            if best_deal and product_names and best_deal not in product_names:
+                logger.warning(
+                    "PriceAgent: best_deal '%s' not in product list %s — correcting",
+                    best_deal,
+                    product_names,
+                )
+                best_deal = product_names[0]
+
             response = AgentResponse(
                 success=True,
                 data={
                     "query": query,
                     "products": [p.model_dump() for p in output.products],
-                    "best_deal": output.best_deal,
+                    "best_deal": best_deal,
                     "recommendation": output.recommendation,
                     "total_compared": len(output.products),
                     "agent": self.name,

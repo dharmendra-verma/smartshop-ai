@@ -2,7 +2,7 @@
 
 import logging
 from pydantic_ai import RunContext
-from sqlalchemy import func
+from sqlalchemy import func, case, literal
 from app.agents.dependencies import AgentDependencies
 from app.models.review import Review
 from app.models.product import Product
@@ -79,37 +79,49 @@ async def get_review_stats(
     """
     db = ctx.deps.db
 
-    # Sentiment counts
-    sentiment_rows = (
-        db.query(Review.sentiment, func.count(Review.review_id))
-        .filter(Review.product_id == product_id)
-        .group_by(Review.sentiment)
-        .all()
-    )
-    sentiment_counts = {row[0]: row[1] for row in sentiment_rows}
-
-    # Rating distribution
-    dist_rows = (
+    # Single aggregation query for all stats
+    row = (
         db.query(
-            func.floor(Review.rating).label("bucket"),
-            func.count(Review.review_id),
+            func.count(Review.review_id).label("total"),
+            func.avg(Review.rating).label("avg_rating"),
+            func.sum(case((Review.sentiment == "positive", 1), else_=0)).label(
+                "positive"
+            ),
+            func.sum(case((Review.sentiment == "negative", 1), else_=0)).label(
+                "negative"
+            ),
+            func.sum(case((Review.sentiment == "neutral", 1), else_=0)).label(
+                "neutral"
+            ),
+            func.sum(
+                case((func.floor(Review.rating) == literal(1), 1), else_=0)
+            ).label("star_1"),
+            func.sum(
+                case((func.floor(Review.rating) == literal(2), 1), else_=0)
+            ).label("star_2"),
+            func.sum(
+                case((func.floor(Review.rating) == literal(3), 1), else_=0)
+            ).label("star_3"),
+            func.sum(
+                case((func.floor(Review.rating) == literal(4), 1), else_=0)
+            ).label("star_4"),
+            func.sum(
+                case((func.floor(Review.rating) == literal(5), 1), else_=0)
+            ).label("star_5"),
         )
         .filter(Review.product_id == product_id)
-        .group_by("bucket")
-        .all()
+        .first()
     )
-    rating_dist = {int(row[0]): row[1] for row in dist_rows}
 
-    # Average rating
-    avg_row = (
-        db.query(func.avg(Review.rating))
-        .filter(Review.product_id == product_id)
-        .scalar()
-    )
-    avg_rating = round(float(avg_row), 2) if avg_row else 0.0
-
-    total = sum(sentiment_counts.values())
-    positive = sentiment_counts.get("positive", 0)
+    total = int(row.total) if row and row.total else 0
+    avg_rating = round(float(row.avg_rating), 2) if row and row.avg_rating else 0.0
+    positive = int(row.positive) if row and row.positive else 0
+    negative = int(row.negative) if row and row.negative else 0
+    neutral = int(row.neutral) if row and row.neutral else 0
+    sentiment_counts = {"positive": positive, "negative": negative, "neutral": neutral}
+    rating_dist = {
+        i: int(getattr(row, f"star_{i}") or 0) if row else 0 for i in range(1, 6)
+    }
 
     # Sentiment score: proportion of positive reviews on 0-1 scale
     sentiment_score = round(positive / total, 3) if total > 0 else 0.0
@@ -153,23 +165,30 @@ async def get_review_samples(
     """
     db = ctx.deps.db
 
-    def fetch_reviews(sentiment: str, limit: int) -> list[str]:
-        rows = (
-            db.query(Review.text)
-            .filter(
-                Review.product_id == product_id,
-                Review.sentiment == sentiment,
-                Review.text.isnot(None),
-            )
-            .order_by(Review.review_date.desc().nullslast())
-            .limit(limit)
-            .all()
+    # Single query with row_number window to fetch all sentiments at once
+    max_per_sentiment = max(max_positive, max_negative, 5)
+    rows = (
+        db.query(Review.text, Review.sentiment)
+        .filter(
+            Review.product_id == product_id,
+            Review.sentiment.in_(["positive", "negative", "neutral"]),
+            Review.text.isnot(None),
         )
-        return [str(r[0])[:200] for r in rows if r[0]]
+        .order_by(Review.sentiment, Review.review_date.desc().nullslast())
+        .limit(max_per_sentiment * 3)
+        .all()
+    )
 
-    positive_texts = fetch_reviews("positive", max_positive)
-    negative_texts = fetch_reviews("negative", max_negative)
-    neutral_texts = fetch_reviews("neutral", 5)
+    # Split results by sentiment with per-sentiment limits
+    limits = {"positive": max_positive, "negative": max_negative, "neutral": 5}
+    buckets: dict[str, list[str]] = {"positive": [], "negative": [], "neutral": []}
+    for text, sentiment in rows:
+        if text and sentiment in buckets and len(buckets[sentiment]) < limits[sentiment]:
+            buckets[sentiment].append(str(text)[:200])
+
+    positive_texts = buckets["positive"]
+    negative_texts = buckets["negative"]
+    neutral_texts = buckets["neutral"]
 
     return {
         "product_id": product_id,

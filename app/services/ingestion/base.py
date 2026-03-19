@@ -39,13 +39,28 @@ class DataIngestionPipeline(ABC, Generic[T]):
 
         for start in range(0, len(df), self.batch_size):
             batch = df.iloc[start : start + self.batch_size]
-            self._process_batch(batch)
+            success_before = self.result.successful
+            failed_before = self.result.failed
+            try:
+                self._process_batch(batch)
+                self.db.commit()
+            except Exception as e:
+                batch_end = min(start + self.batch_size, len(df))
+                logger.error(
+                    f"Batch failed at rows {start}-{batch_end}: {e}"
+                )
+                self.db.rollback()
+                # Revert counts from _process_batch and mark all as failed
+                batch_successes = self.result.successful - success_before
+                self.result.successful = success_before
+                self.result.failed = failed_before + len(batch)
+                self.result.errors.append(
+                    f"Batch error at rows {start}-{batch_end}: {str(e)}"
+                )
             logger.info(
                 f"Progress: {min(start + self.batch_size, len(df))}/{len(df)} "
                 f"(success={self.result.successful}, failed={self.result.failed})"
             )
-
-        self.db.commit()
         self._log_summary()
         return self.result
 

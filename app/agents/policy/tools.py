@@ -34,13 +34,27 @@ async def retrieve_policy_sections(
 
 
 def _db_fallback(db, query: str) -> str:
+    from sqlalchemy import or_
+
     from app.models.policy import Policy
 
-    policies = db.query(Policy).limit(5).all()
-    kws = query.lower().split()
+    keywords = query.lower().split()
+    if not keywords:
+        return "No matching policies found."
+
+    # Build SQL WHERE filters instead of loading all rows and filtering in Python
+    conditions = []
+    for kw in keywords:
+        pattern = f"%{kw}%"
+        conditions.append(Policy.description.ilike(pattern))
+        conditions.append(Policy.conditions.ilike(pattern))
+
+    policies = db.query(Policy).filter(or_(*conditions)).limit(3).all()
+
+    if not policies:
+        return "No matching policies found."
+
     results = [
-        f"{p.policy_type}: {p.description}\n{p.conditions}"
-        for p in policies
-        if any(k in f"{p.description} {p.conditions}".lower() for k in kws)
+        f"{p.policy_type}: {p.description}\n{p.conditions}" for p in policies
     ]
-    return "\n\n".join(results[:3]) if results else "No matching policies found."
+    return "\n\n".join(results)

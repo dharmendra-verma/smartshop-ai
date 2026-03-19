@@ -33,12 +33,14 @@ def make_mock_db(products=None, reviews=None):
             None
         )
 
-    # Default empty results for group_by and scalar queries
+    # Default empty results for group_by and scalar queries (legacy compat)
     db.query.return_value.filter.return_value.group_by.return_value.all.return_value = (
         []
     )
     db.query.return_value.filter.return_value.scalar.return_value = None
-    db.query.return_value.filter.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = (
+
+    # Default empty results for review samples (single combined query)
+    db.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = (
         []
     )
     return db
@@ -292,7 +294,18 @@ class TestReviewTools:
     async def test_get_review_stats_empty(self):
         from app.agents.review.tools import get_review_stats
 
-        db = make_mock_db()
+        db = MagicMock()
+        # Mock the single aggregation query returning empty stats
+        empty_row = MagicMock()
+        empty_row.total = 0
+        empty_row.avg_rating = None
+        empty_row.positive = 0
+        empty_row.negative = 0
+        empty_row.neutral = 0
+        for i in range(1, 6):
+            setattr(empty_row, f"star_{i}", 0)
+        db.query.return_value.filter.return_value.first.return_value = empty_row
+
         deps = AgentDependencies(db=db, settings=get_settings())
         ctx = MagicMock()
         ctx.deps = deps
@@ -303,12 +316,42 @@ class TestReviewTools:
         assert result["average_rating"] == 0.0
 
     @pytest.mark.asyncio
+    async def test_get_review_stats_with_data(self):
+        from app.agents.review.tools import get_review_stats
+
+        db = MagicMock()
+        stats_row = MagicMock()
+        stats_row.total = 10
+        stats_row.avg_rating = 4.25
+        stats_row.positive = 7
+        stats_row.negative = 2
+        stats_row.neutral = 1
+        stats_row.star_1 = 0
+        stats_row.star_2 = 1
+        stats_row.star_3 = 1
+        stats_row.star_4 = 3
+        stats_row.star_5 = 5
+        db.query.return_value.filter.return_value.first.return_value = stats_row
+
+        deps = AgentDependencies(db=db, settings=get_settings())
+        ctx = MagicMock()
+        ctx.deps = deps
+
+        result = await get_review_stats(ctx, "PROD001")
+        assert result["total_reviews"] == 10
+        assert result["average_rating"] == 4.25
+        assert result["sentiment_counts"]["positive"] == 7
+        assert result["sentiment_counts"]["negative"] == 2
+        assert result["sentiment_score"] == 0.7
+        assert result["rating_distribution"]["five_star"] == 5
+
+    @pytest.mark.asyncio
     async def test_get_review_samples_empty(self):
         from app.agents.review.tools import get_review_samples
 
-        db = make_mock_db()
-        # Override the chained query for review samples
-        db.query.return_value.filter.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = (
+        db = MagicMock()
+        # Single combined query returns empty
+        db.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = (
             []
         )
         deps = AgentDependencies(db=db, settings=get_settings())
@@ -319,6 +362,46 @@ class TestReviewTools:
         assert result["positive_reviews"] == []
         assert result["negative_reviews"] == []
         assert result["counts"]["positive"] == 0
+
+    @pytest.mark.asyncio
+    async def test_get_review_samples_with_data(self):
+        from app.agents.review.tools import get_review_samples
+
+        db = MagicMock()
+        # Mock combined query returning mixed sentiments
+        db.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [
+            ("Great phone!", "positive"),
+            ("Love the camera", "positive"),
+            ("Battery is bad", "negative"),
+            ("It's okay", "neutral"),
+        ]
+        deps = AgentDependencies(db=db, settings=get_settings())
+        ctx = MagicMock()
+        ctx.deps = deps
+
+        result = await get_review_samples(ctx, "PROD001")
+        assert len(result["positive_reviews"]) == 2
+        assert len(result["negative_reviews"]) == 1
+        assert len(result["neutral_reviews"]) == 1
+        assert result["counts"]["positive"] == 2
+
+    @pytest.mark.asyncio
+    async def test_get_review_samples_respects_limits(self):
+        from app.agents.review.tools import get_review_samples
+
+        db = MagicMock()
+        # Return more than the limit
+        db.query.return_value.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [
+            ("Review 1", "positive"),
+            ("Review 2", "positive"),
+            ("Review 3", "positive"),
+        ]
+        deps = AgentDependencies(db=db, settings=get_settings())
+        ctx = MagicMock()
+        ctx.deps = deps
+
+        result = await get_review_samples(ctx, "PROD001", max_positive=2, max_negative=2)
+        assert len(result["positive_reviews"]) == 2
 
 
 # ---- Schema Tests ----

@@ -1,6 +1,5 @@
 """Unit tests for chat_helpers — SCRUM-83 product link formatting."""
 
-import pytest
 from app.ui.components.chat_helpers import (
     format_recommendation_message,
     format_review_message,

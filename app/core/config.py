@@ -59,13 +59,8 @@ class Settings(BaseSettings):
     RATE_LIMIT_BURST: int = 10
 
     # CORS
-    CORS_ORIGINS: list[str] = [
-        "http://localhost:3000",
-        "http://localhost:8501",
-        "https://smartshop-ui-staging.whiteriver-5d067381.eastus.azurecontainerapps.io",
-        "https://smartshop-ui-prod.whiteriver-5d067381.eastus.azurecontainerapps.io",
-    ]
-    CORS_ALLOW_CREDENTIALS: bool = True
+    CORS_ORIGINS: list[str] = ["*"]
+    CORS_ALLOW_CREDENTIALS: bool = False
 
     class Config:
         env_file = ".env"

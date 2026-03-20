@@ -17,6 +17,7 @@ from app.ui.api_client import (  # noqa: E402
     summarize_reviews,
     search_products,
     compare_prices,
+    get_product,
 )
 from app.ui.components.product_card import render_product_grid  # noqa: E402
 from app.ui.components.review_display import render_review_summary  # noqa: E402
@@ -33,6 +34,13 @@ st.set_page_config(
 from app.ui.design_tokens import get_global_css  # noqa: E402
 
 st.markdown(get_global_css(), unsafe_allow_html=True)
+
+# -- Product navigation from chat (SCRUM-83) -----------------------------------
+# Chat widget click handler sets ?focus_product=<id> and navigates here
+_focus_product_id = st.query_params.get("focus_product", None)
+if _focus_product_id:
+    st.session_state["focused_product_id"] = _focus_product_id
+    del st.query_params["focus_product"]
 
 # -- Sidebar -------------------------------------------------------------------
 with st.sidebar:
@@ -135,6 +143,19 @@ if page == "🔍 Product Search & Recommendations":
                 st.session_state["search_total_pages"] = data["pages"]
             else:
                 st.error(result["error"])
+
+        # If a product is focused but not in current results, fetch it (SCRUM-83)
+        _fp_id = st.session_state.get("focused_product_id")
+        if _fp_id:
+            _current_ids = [
+                p.get("id") for p in st.session_state.get("search_products_list", [])
+            ]
+            if _fp_id not in _current_ids:
+                _fp_result = get_product(api_url, _fp_id)
+                if _fp_result["success"] and _fp_result["data"]:
+                    st.session_state["search_products_list"].insert(
+                        0, _fp_result["data"]
+                    )
 
         # Display accumulated results
         products = st.session_state.get("search_products_list", [])

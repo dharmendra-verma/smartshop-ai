@@ -128,6 +128,54 @@ def test_compare_checkbox_checked_when_selected(mock_st):
             break
 
 
+# -- SCRUM-83: Product anchor and focus tests --
+
+
+def test_product_card_anchor_id(mock_st):
+    """Verify anchor element with product ID is rendered."""
+    from app.ui.components.product_card import render_product_card
+
+    mock_st.session_state = {"compare_product_ids": []}
+    render_product_card(SAMPLE_PRODUCT)
+    found = any('id="product-HP001"' in str(c) for c in mock_st.markdown.call_args_list)
+    assert found, "Product anchor ID should be rendered"
+
+
+def test_product_card_focus_highlight(mock_st):
+    """Verify highlight and scroll script when product is focused."""
+    from app.ui.components.product_card import render_product_card
+
+    mock_st.session_state = {
+        "focused_product_id": "HP001",
+        "compare_product_ids": [],
+    }
+    render_product_card(SAMPLE_PRODUCT)
+    found = any("scrollIntoView" in str(c) for c in mock_st.markdown.call_args_list)
+    assert found, "Scroll-to script should be injected for focused product"
+
+
+def test_product_card_focus_cleared_after_render(mock_st):
+    """Verify focused_product_id is cleared after rendering focused card."""
+    from app.ui.components.product_card import render_product_card
+
+    mock_st.session_state = {
+        "focused_product_id": "HP001",
+        "compare_product_ids": [],
+    }
+    render_product_card(SAMPLE_PRODUCT)
+    assert "focused_product_id" not in mock_st.session_state
+
+
+def test_product_card_no_highlight_when_not_focused(mock_st):
+    """Verify no scroll script when product is not focused."""
+    from app.ui.components.product_card import render_product_card
+
+    mock_st.session_state = {"compare_product_ids": []}
+    render_product_card(SAMPLE_PRODUCT)
+    found = any("scrollIntoView" in str(c) for c in mock_st.markdown.call_args_list)
+    assert not found, "Scroll-to script should NOT be injected for non-focused product"
+
+
 def test_compare_fifo_removes_oldest_on_third_selection():
     """Adding a 3rd ID removes the first — FIFO behaviour."""
     state = {"compare_product_ids": ["A", "B"], "compare_open": False}

@@ -172,6 +172,16 @@ def _build_floating_chat_html(api_url: str) -> str:
       word-wrap: break-word;
       white-space: pre-wrap;
     }}
+    .ss-product-link {{
+      color: #1f77b4;
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: 600;
+    }}
+    .ss-product-link:hover {{
+      color: #ff7f0e;
+      text-decoration: underline;
+    }}
     .ss-chat-spinner {{ color: #999; font-style: italic; font-size: 0.85rem; }}
 
     /* Input Row */
@@ -279,6 +289,30 @@ def _build_floating_chat_html(api_url: str) -> str:
 
   parentDoc.body.appendChild(panel);
 
+  // ── Restore chat history from sessionStorage (SCRUM-83) ────────
+  var parentWin = window.parent;
+  var savedHistory = parentWin.sessionStorage.getItem('smartshop_chat_history');
+  if (savedHistory) {{
+    try {{
+      var chatMsgs = JSON.parse(savedHistory);
+      // Remove the default welcome message — history replaces it
+      while (msgsDiv.firstChild) msgsDiv.removeChild(msgsDiv.firstChild);
+      chatMsgs.forEach(function(m) {{
+        var el = parentDoc.createElement('div');
+        el.className = m.cls;
+        el.innerHTML = m.html;
+        msgsDiv.appendChild(el);
+      }});
+    }} catch(e) {{}}
+    parentWin.sessionStorage.removeItem('smartshop_chat_history');
+  }}
+  // Restore chat panel open state
+  if (parentWin.sessionStorage.getItem('smartshop_chat_open') === '1') {{
+    panel.classList.add('open');
+    btn.style.display = 'none';
+    parentWin.sessionStorage.removeItem('smartshop_chat_open');
+  }}
+
   // ── Wire up event handlers ─────────────────────────────────────
   var msgs     = msgsDiv;
   var chatInput = chatInputEl;
@@ -286,7 +320,6 @@ def _build_floating_chat_html(api_url: str) -> str:
   var API_URL  = '{api_url}';
 
   // Session ID (persisted in parent sessionStorage)
-  var parentWin = window.parent;
   var sessionId = parentWin.sessionStorage.getItem('smartshop_session_id');
   if (!sessionId) {{
     sessionId = 'chat-' + Math.random().toString(36).substr(2, 9);
@@ -336,6 +369,44 @@ def _build_floating_chat_html(api_url: str) -> str:
     }}
   }});
 
+  // HTML escaping utility to prevent XSS
+  function escapeHtml(text) {{
+    var div = parentDoc.createElement('div');
+    div.appendChild(parentDoc.createTextNode(text));
+    return div.innerHTML;
+  }}
+
+  // Build a clickable product link or plain text fallback
+  function productLink(name, productId) {{
+    var safeName = escapeHtml(name || 'Product');
+    if (productId) {{
+      return '<a href="#" class="ss-product-link" data-product-id="' + escapeHtml(productId) + '">' + safeName + '</a>';
+    }}
+    return safeName;
+  }}
+
+  // Product link click handler — delegated on parent document (SCRUM-83)
+  // Must be on parentDoc because the links live in the parent DOM, not the iframe
+  parentDoc.addEventListener('click', function(e) {{
+    var link = e.target.closest ? e.target.closest('.ss-product-link') : null;
+    if (!link) return;
+    e.preventDefault();
+    e.stopPropagation();
+    var productId = link.getAttribute('data-product-id');
+    if (!productId) return;
+    // Save chat state so it survives the rerun
+    var chatMsgs = [];
+    msgs.querySelectorAll('.ss-chat-msg-user, .ss-chat-msg-bot').forEach(function(el) {{
+      chatMsgs.push({{cls: el.className, html: el.innerHTML}});
+    }});
+    parentWin.sessionStorage.setItem('smartshop_chat_history', JSON.stringify(chatMsgs));
+    parentWin.sessionStorage.setItem('smartshop_chat_open', panel.classList.contains('open') ? '1' : '');
+    // Navigate with query param — triggers Streamlit rerun
+    var url = new URL(parentWin.location);
+    url.searchParams.set('focus_product', productId);
+    parentWin.location.href = url.toString();
+  }});
+
   // Send message
   function sendMessage() {{
     var text = chatInput.value.trim();
@@ -377,29 +448,42 @@ def _build_floating_chat_html(api_url: str) -> str:
           sessionId = data.session_id;
           parentWin.sessionStorage.setItem('smartshop_session_id', sessionId);
         }}
+        var useHtml = false;
         if (intent === 'general') {{
           reply = resp.answer || 'I am not sure how to help with that.';
         }} else if (intent === 'policy') {{
           reply = resp.answer || 'No policy information found.';
         }} else if (intent === 'price') {{
-          reply = (resp.best_deal ? '\\uD83C\\uDFC6 Best Deal: ' + resp.best_deal + '\\n\\n' : '') +
-                  (resp.recommendation || 'No comparison data.');
+          useHtml = true;
+          var bestDeal = resp.best_deal ? escapeHtml('\\uD83C\\uDFC6 Best Deal: ' + resp.best_deal) + '\\n\\n' : '';
+          reply = bestDeal + escapeHtml(resp.recommendation || 'No comparison data.');
         }} else if (intent === 'recommendation' || intent === 'comparison') {{
           var recs = resp.recommendations || [];
           if (recs.length > 0) {{
-            reply = (resp.reasoning_summary ? resp.reasoning_summary + '\\n\\n' : '');
+            useHtml = true;
+            reply = (resp.reasoning_summary ? escapeHtml(resp.reasoning_summary) + '\\n\\n' : '');
             recs.forEach(function(r, i) {{
-              reply += (i+1) + '. ' + (r.name || r.product_id || 'Product') +
+              var pid = r.product_id || r.id || '';
+              var name = r.name || pid || 'Product';
+              var link = productLink(name, pid);
+              reply += (i+1) + '. <strong>' + link + '</strong>' +
                        (r.price ? ' - $' + r.price : '') +
-                       (r.reason ? '\\n   ' + r.reason : '') + '\\n';
+                       (r.reason ? '\\n   ' + escapeHtml(r.reason) : '') + '\\n';
             }});
           }} else {{
             reply = resp.reasoning_summary || 'No recommendations found.';
           }}
         }} else if (intent === 'review') {{
-          reply = resp.overall_summary || resp.summary || 'No review summary available.';
+          useHtml = true;
+          var reviewText = escapeHtml(resp.overall_summary || resp.summary || 'No review summary available.');
           if (resp.average_rating) {{
-            reply = '\\u2B50 ' + resp.average_rating.toFixed(1) + '/5 (' + (resp.total_reviews || 0) + ' reviews)\\n\\n' + reply;
+            reply = escapeHtml('\\u2B50 ' + resp.average_rating.toFixed(1) + '/5 (' + (resp.total_reviews || 0) + ' reviews)') + '\\n\\n' + reviewText;
+          }} else {{
+            reply = reviewText;
+          }}
+          if (resp.product_id) {{
+            var prodName = resp.product_name || resp.product_id;
+            reply = '<strong>' + productLink(prodName, resp.product_id) + '</strong>\\n' + reply;
           }}
         }} else {{
           reply = resp.answer || resp.reasoning_summary || JSON.stringify(resp).substring(0, 300);
@@ -409,7 +493,11 @@ def _build_floating_chat_html(api_url: str) -> str:
       }}
       var botDiv = parentDoc.createElement('div');
       botDiv.className = 'ss-chat-msg-bot';
-      botDiv.textContent = reply;
+      if (useHtml) {{
+        botDiv.innerHTML = reply;
+      }} else {{
+        botDiv.textContent = reply;
+      }}
       msgs.appendChild(botDiv);
       msgs.scrollTop = msgs.scrollHeight;
     }})

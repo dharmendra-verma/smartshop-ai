@@ -64,7 +64,16 @@ def _build_card_html(product: dict) -> str:
 
 def render_product_card(product: dict) -> None:
     """Render a single product as a styled card — v2."""
+    product_id = product.get("id", "")
+    is_focused = st.session_state.get("focused_product_id") == product_id
+
     with st.container(border=True):
+        # Anchor element for scroll-to navigation from chat
+        st.markdown(
+            f'<div id="product-{product_id}"></div>',
+            unsafe_allow_html=True,
+        )
+
         # Image — kept as separate st.markdown so Streamlit can handle <img>
         img_url = _product_image_url(product)
         st.markdown(
@@ -75,6 +84,21 @@ def render_product_card(product: dict) -> None:
 
         # All card details as a single HTML block — no extra Streamlit spacing
         st.markdown(_build_card_html(product), unsafe_allow_html=True)
+
+        # Highlight and auto-scroll for focused product (SCRUM-83)
+        if is_focused:
+            st.markdown(
+                f"""<style>
+                #product-{product_id} {{ border-left: 4px solid #ff7f0e; padding-left: 8px; }}
+                </style>
+                <script>
+                document.getElementById('product-{product_id}')?.scrollIntoView({{
+                    behavior: 'smooth', block: 'center'
+                }});
+                </script>""",
+                unsafe_allow_html=True,
+            )
+            del st.session_state["focused_product_id"]
 
         # These use native Streamlit widgets so must stay separate
         if product.get("reason"):

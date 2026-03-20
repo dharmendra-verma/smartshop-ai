@@ -52,6 +52,13 @@ def detect_intent(query: str) -> str:
     return "recommendation"
 
 
+def _product_link_md(name: str, product_id: str | None) -> str:
+    """Return a markdown product link or plain name if no ID."""
+    if product_id:
+        return f"[{name}](#{product_id})"
+    return name
+
+
 def format_recommendation_message(data: dict) -> str:
     """Format a recommendation API response as markdown for chat display."""
     recs = data.get("recommendations", [])
@@ -63,8 +70,11 @@ def format_recommendation_message(data: dict) -> str:
         price = float(rec.get("price", 0))
         rating = rec.get("rating")
         stars = f"{'⭐' * round(rating)}" if rating else ""
+        name = rec.get("name", "Product")
+        product_id = rec.get("product_id") or rec.get("id", "")
+        link = _product_link_md(name, product_id)
         lines.append(
-            f"**{i}. {rec['name']}** — ${price:.2f} {stars}\n"
+            f"**{i}. {link}** — ${price:.2f} {stars}\n"
             f"   _{rec.get('reason', '')}_\n"
         )
 
@@ -77,6 +87,7 @@ def format_recommendation_message(data: dict) -> str:
 def format_review_message(data: dict) -> str:
     """Format a review summarization response as markdown for chat display."""
     product_name = data.get("product_name", "this product")
+    product_id = data.get("product_id") or data.get("id", "")
     total = data.get("total_reviews", 0)
     avg = data.get("average_rating", 0)
     score = data.get("sentiment_score", 0)
@@ -84,8 +95,9 @@ def format_review_message(data: dict) -> str:
     pos = data.get("positive_themes", [])
     neg = data.get("negative_themes", [])
 
+    name_display = _product_link_md(product_name, product_id)
     lines = [
-        f"**Review Summary: {product_name}**",
+        f"**Review Summary: {name_display}**",
         f"_{total} reviews · {avg:.1f}/5.0 avg · {score:.0%} positive sentiment_\n",
     ]
     if pos:

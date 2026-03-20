@@ -257,6 +257,14 @@ def get_product_reviews(
     )
 
 
+def get_product(api_url: str, product_id: str) -> dict[str, Any]:
+    """
+    Call GET /api/v1/products/{product_id}.
+    Returns {"success": bool, "data": Product dict, "error": str | None}
+    """
+    return _get(f"{api_url}/api/v1/products/{product_id}")
+
+
 def chat(
     api_url: str, message: str, session_id: str | None = None, max_results: int = 5
 ) -> dict[str, Any]:

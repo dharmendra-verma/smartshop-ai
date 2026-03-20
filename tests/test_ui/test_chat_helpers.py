@@ -57,7 +57,12 @@ class TestFormatRecommendationWithLinks:
         data = {
             "query": "phones",
             "recommendations": [
-                {"name": "Galaxy S24", "id": "PH001", "price": 799.0, "reason": "Top pick"}
+                {
+                    "name": "Galaxy S24",
+                    "id": "PH001",
+                    "price": 799.0,
+                    "reason": "Top pick",
+                }
             ],
         }
         result = format_recommendation_message(data)
@@ -85,9 +90,7 @@ class TestFormatRecommendationWithLinks:
     def test_reasoning_summary_included(self):
         data = {
             "query": "test",
-            "recommendations": [
-                {"name": "P1", "product_id": "X1", "price": 10.0}
-            ],
+            "recommendations": [{"name": "P1", "product_id": "X1", "price": 10.0}],
             "reasoning_summary": "Based on your preferences",
         }
         result = format_recommendation_message(data)

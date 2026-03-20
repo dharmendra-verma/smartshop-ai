@@ -1,6 +1,6 @@
 # Testing Guide
 
-SmartShop AI uses **pytest** with ~390 unit/integration tests and ~97 opt-in LLM evaluation tests.
+SmartShop AI uses **pytest** with ~511 unit/integration tests and ~97 opt-in LLM evaluation tests.
 
 ---
 
@@ -171,11 +171,11 @@ def test_list_products(db_session):
 
 | Area | Files | What's Tested |
 |------|-------|---------------|
-| Agents | 6 | Intent classification, agent responses, error paths, caching |
-| API | 7 | Endpoint contracts, status codes, validation, 404s |
-| Core | 5 | DB singletons, LLM cache, metrics, query cache, alerting |
+| Agents | 10 | Intent classification, agent responses, error paths, caching, AI routing, SQL optimizations, error handling, base agent, query utils |
+| API | 7 | Endpoint contracts, status codes, validation, 404s, 503 error boundaries |
+| Core | 6 | DB singletons, LLM cache, metrics, query cache, alerting, cache factory, logging |
 | Integration | 2 | Full recommendation + review E2E flows |
-| Middleware | 2 | Error handler mapping, request ID injection |
+| Middleware | 2 | Error handler mapping, request ID injection, DB error handling |
 | Models | 4 | Product/Review/Policy serialization, constraints |
 | Schemas | 1 | Ingestion schema validation |
 | Scripts | 3 | Data loading, image seeding, verification |
@@ -203,8 +203,14 @@ RUN_EVALS=1 pytest tests/evals/ -v -m eval
 |-------------|-----------|
 | SCRUM-14 | 222 |
 | SCRUM-62 | 390 |
+| SCRUM-63 | 444 |
+| SCRUM-65 | 460 |
+| SCRUM-66 | 474 |
+| SCRUM-67 | 486 |
+| SCRUM-68 | 500 |
+| SCRUM-69 | 511 |
 
-Total visible to `pytest`: ~390 unit + 97 eval = ~487 tests.
+Total visible to `pytest`: ~511 unit + 97 eval = ~608 tests.
 
 ---
 

@@ -1,5 +1,13 @@
 # SmartShop AI — Project Memory
 
+## Session Initialization (Read This First)
+When this project folder is loaded, do the following **before any task**:
+1. **Load Jira config**: Read `memory/projects/SCRUM.json` — contains base URL, email, token, done transition ID, completed stories, and test count.
+2. **Check token**: If `api_token` is `__JIRA_API_TOKEN__`, ask the user for it before any Jira operation.
+3. **Use Jira helper**: All Jira API calls go through `scripts/jira.sh <METHOD> <endpoint> [body]`.
+4. **SDLC tasks**: See `plans/inprogress/` for active stories, `plans/plan/` for queued stories, `.progress/` for completion reports.
+5. **Do NOT** search Chrome, Windows MCP, MCP registry, or Gmail for Jira credentials — all config is in `memory/projects/SCRUM.json`.
+
 ## Project
 **SmartShop AI** — AI-powered multi-agent e-commerce assistant.
 FastAPI (port 8000) + pydantic-ai agents + Streamlit UI (port 8501) + PostgreSQL + Redis.

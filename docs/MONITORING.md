@@ -6,11 +6,13 @@
 
 ### GET `/health`
 
-Basic service health check.
+Service health check with database connectivity probe.
 
 ```json
-{"status": "healthy", "service": "SmartShop AI", "version": "1.0.0", "timestamp": "..."}
+{"status": "healthy", "service": "SmartShop AI", "version": "1.0.0", "timestamp": "...", "database": "connected"}
 ```
+
+When the database is unreachable, returns `"status": "degraded"` and `"database": "unreachable"` (HTTP 200).
 
 ### GET `/health/metrics`
 
@@ -123,6 +125,8 @@ All exceptions are caught, mapped to HTTP status codes, and logged:
 | `AgentRateLimitError` | 429 | Yes |
 | `AgentTimeoutError` | 504 | Yes |
 | `DatabaseError` | 503 | Yes |
+| `SQLAlchemy OperationalError` | 503 | Yes (`database` component) |
+| `SQLAlchemy InterfaceError` | 503 | Yes (`database` component) |
 | `SmartShopError` | 500 | Yes |
 | Unhandled | 500 | Yes |
 
@@ -154,3 +158,41 @@ LLM-backed endpoints benefit from the 24-hour LLM cache — cached responses ser
 | Query fallback | 24h | in-memory | dict (process-local) |
 
 No built-in cache hit/miss metrics endpoint yet — check logs for `LLM cache hit/miss` debug messages.
+
+---
+
+## File Logging
+
+**Configuration:** Set `LOG_FILE` environment variable to enable file logging alongside console output.
+
+| Setting | Value |
+|---------|-------|
+| Handler | `RotatingFileHandler` |
+| Max size | 10 MB per file |
+| Backup count | 5 files |
+| Format | Same as console (with request IDs) |
+
+When `LOG_FILE` is not set, only console logging is active (default behaviour).
+
+---
+
+## Database Connectivity Monitoring
+
+| Check | Location | Behaviour |
+|-------|----------|-----------|
+| Startup probe | `app/main.py` (lifespan) | `SELECT 1` on startup; `CRITICAL` log with masked DB host on failure |
+| Health endpoint | `GET /health` | Live DB probe; returns `"degraded"` status if unreachable |
+| Error middleware | `ErrorHandlerMiddleware` | Catches `OperationalError`/`InterfaceError` → 503 + `record_failure("database")` |
+| Connection pool | `get_engine()` | `connect_timeout=10s`, `pool_recycle=1800s` |
+| Session safety | `get_db()` | `rollback()` before `close()` on exceptions |
+
+---
+
+## Agent Routing Observability
+
+| Feature | Detail |
+|---------|--------|
+| Confidence gating | Intent classifications below 0.6 confidence route to general agent |
+| Hallucination tracking | Recommendation agent logs hallucinated product IDs and records `record_failure("hallucination")` |
+| Classification failure flag | `classification_failed: bool` on `_IntentResult` distinguishes "classified as general" from "couldn't classify" |
+| Session parse alerting | JSON parse failures on session data trigger `record_failure("session_parse")` |

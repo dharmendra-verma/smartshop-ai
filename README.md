@@ -133,12 +133,12 @@ smartshop-ai/
 │   ├── ui/
 │   │   ├── streamlit_app.py   # Main Streamlit interface
 │   │   ├── api_client.py      # HTTP client for FastAPI backend
-│   │   ├── components/        # product_card, review_display, chat_helpers, star_rating
+│   │   ├── components/        # product_card, review_display, review_panel, chat_helpers, star_rating, floating_chat
 │   │   └── design_tokens.py   # CSS and styling
 │   └── main.py                # FastAPI application entry
 ├── alembic/                   # Database migrations
 ├── data/                      # CSV datasets
-├── tests/                     # 390+ unit tests + 97 eval tests
+├── tests/                     # 511+ unit tests + 97 eval tests
 │   ├── test_agents/
 │   ├── test_api/
 │   ├── test_services/
@@ -177,7 +177,7 @@ pytest tests/test_agents/test_recommendation.py -v
 RUN_EVALS=1 pytest tests/evals/ -v -m eval
 ```
 
-**Test counts:** ~390 unit/integration tests + 97 eval tests = ~487 total.
+**Test counts:** ~511 unit/integration tests + 97 eval tests = ~608 total.
 
 ## 📚 Documentation
 
@@ -231,6 +231,15 @@ RUN_EVALS=1 pytest tests/evals/ -v -m eval
 - Product images
 - Agent loop prevention (UsageLimits)
 - 286+ tests
+
+### Phase 5: Hardening ✅
+- File logging with rotation (SCRUM-63)
+- DB health checks & connectivity monitoring (SCRUM-65)
+- DRY code refactor — cache factory, shared error handling (SCRUM-66)
+- SQL query optimization — 3→1 query consolidation (SCRUM-67)
+- AI routing accuracy — confidence gating, hallucination tracking (SCRUM-68)
+- Error handling hardening — honest failure reporting, 503 boundaries (SCRUM-69)
+- 511+ tests
 
 ## 🤝 Contributing
 

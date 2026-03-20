@@ -22,8 +22,8 @@ async def search_products_by_filters(
     Search the product catalog with optional filters.
 
     Use this to find products matching user criteria. All filters are optional
-    and combined with AND logic. Call multiple times with different filters
-    to explore the catalog.
+    and combined with AND logic. Provide ALL known filters in a single call
+    for best results — avoid calling this tool multiple times.
 
     Args:
         category: Product category (e.g. "electronics", "laptops", "smartphones")

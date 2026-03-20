@@ -107,7 +107,7 @@ class RecommendationAgent(BaseAgent):
 
         try:
             result = await self._agent.run(
-                enriched_query, deps=deps, usage_limits=UsageLimits(request_limit=15)
+                enriched_query, deps=deps, usage_limits=UsageLimits(request_limit=5)
             )
             self.log_usage(result)
             output: _RecommendationOutput = result.output

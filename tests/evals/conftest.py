@@ -351,7 +351,7 @@ def format_agent_response(result, agent_type: str = "") -> str:
                     price = rec.get("price", "N/A")
                     rating = rec.get("rating", "N/A")
                     reason = rec.get("reason", "")
-                    parts.append(f"  {i}. {name} — ${price} | Rating: {rating}★")
+                    parts.append(f"  {i}. {name} - ${price} | Rating: {rating}/5")
                     if reason:
                         parts.append(f"     Reason: {reason}")
                 else:
@@ -366,7 +366,7 @@ def format_agent_response(result, agent_type: str = "") -> str:
         if "sentiment_summary" in data:
             parts.append(f"Sentiment: {data['sentiment_summary']}")
         if "average_rating" in data:
-            parts.append(f"Average Rating: {data['average_rating']}★")
+            parts.append(f"Average Rating: {data['average_rating']}/5")
         if "highlights" in data:
             parts.append(f"Highlights: {data['highlights']}")
         if "concerns" in data:
